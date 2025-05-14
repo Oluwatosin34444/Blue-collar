@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Menu, Search } from "lucide-react";
 import { locations, services } from "@/lib/constant";
+import Container from "@/components/container";
 
 export function MyAppNav() {
   const [search, setSearch] = useState("");
@@ -15,7 +16,6 @@ export function MyAppNav() {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
 
-  // Combine and filter suggestions
   const suggestions = [
     ...services.map((s) => ({ type: "service", value: s })),
     ...locations.map((l) => ({ type: "location", value: l })),
@@ -25,7 +25,6 @@ export function MyAppNav() {
       search.trim() !== ""
   );
 
-  // Control popover visibility based on input focus and suggestions
   useEffect(() => {
     if (isInputFocused && search.trim() !== "" && suggestions.length > 0) {
       setPopoverOpen(true);
@@ -38,7 +37,6 @@ export function MyAppNav() {
     }
   }, [isInputFocused, search, suggestions.length]);
 
-  // Handle selection
   const handleSelect = (item: { type: string; value: string }) => {
     setSearch(item.value);
     setPopoverOpen(false);
@@ -50,10 +48,8 @@ export function MyAppNav() {
     }
   };
 
-  // Handle submit
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Try to match service or location
     const service = services.find(
       (s) => s.toLowerCase() === search.trim().toLowerCase()
     );
@@ -70,7 +66,6 @@ export function MyAppNav() {
     setPopoverOpen(false);
   };
 
-  // Keyboard navigation for suggestions
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!popoverOpen || suggestions.length === 0) return;
     if (e.key === "ArrowDown") {
@@ -157,7 +152,8 @@ export function MyAppNav() {
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <Container>
+        <div className="w-full mx-auto py-1">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-gray-800">BlueCollar</h1>
@@ -193,7 +189,7 @@ export function MyAppNav() {
                   onKeyDown={handleKeyDown}
                   style={{ boxShadow: "none" }}
                 />
-                <Button type="submit" className="rounded-full px-8 ml-2">
+                <Button type="submit" className="rounded-full px-8 ml-2 bg-blue-600 text-white hover:bg-blue-700">
                   Search
                 </Button>
               </form>
@@ -234,16 +230,10 @@ export function MyAppNav() {
           <div className="hidden md:flex items-center gap-2 ml-6">
             <NavLink
               to="/login"
-              className="px-3 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90"
+              className="px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
             >
               Login
             </NavLink>
-            {/* <NavLink
-              to="/register"
-              className="px-3 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90"
-            >
-              Register
-            </NavLink> */}
           </div>
 
           {/* Mobile Menu */}
@@ -288,7 +278,7 @@ export function MyAppNav() {
                         onKeyDown={handleKeyDown}
                         style={{ boxShadow: "none" }}
                       />
-                      <Button type="submit" className="ml-2">
+                      <Button type="submit" className="ml-2 bg-blue-600 text-white hover:bg-blue-700">
                         Go
                       </Button>
                     </form>
@@ -326,16 +316,10 @@ export function MyAppNav() {
                   <div className="flex flex-col gap-2 px-6 mt-6">
                     <NavLink
                       to="/login"
-                      className="px-3 py-2 rounded-md text-sm text-center font-medium text-white bg-primary hover:bg-primary/90"
+                      className="px-3 py-2 rounded-md text-sm text-center font-medium text-white bg-blue-600 hover:bg-blue-700"
                     >
                       Login
                     </NavLink>
-                    {/* <NavLink
-                      to="/register"
-                      className="px-3 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90"
-                    >
-                      Register
-                    </NavLink> */}
                   </div>
                 </div>
               </SheetContent>
@@ -343,6 +327,8 @@ export function MyAppNav() {
           </div>
         </div>
       </div>
+      </Container>
+      
     </nav>
   );
 }

@@ -1,6 +1,8 @@
+import Container from "@/components/container";
+
 const About = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <Container className="py-10">
       <h1 className="text-3xl font-bold mb-4">About Us</h1>
       <p className="mb-4 text-lg">
         We are a one-stop platform connecting you with trusted, skilled artisans across Nigeria. Whether you need a reliable plumber, an experienced electrician, a talented tailor, or a professional cleaner — we make it easy to find, book, and receive quality service right at your doorstep.
@@ -23,7 +25,7 @@ const About = () => {
         <li>Support for local talent and small businesses</li>
         <li>Fair pricing and transparent processes</li>
       </ul>
-    </div>
+    </Container>
   );
 };
 

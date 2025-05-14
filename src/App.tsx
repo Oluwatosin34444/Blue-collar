@@ -3,12 +3,13 @@ import { Home, About, Contact, Artisans, Services, Login, Register, ClientRegist
 import { MyAppNav } from "./components/navbar";
 import ArtisanDetails from "./views/artisans/[id]";
 import { TailwindIndicator } from "./components/tailwind-indicator";
+import { Footer } from "./sections";
+import FloatingWhatsApp from "./components/floating-whatsapp";
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <MyAppNav />
-      <main className="container mx-auto px-4 py-8">
         <Routes>
           <Route index path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -23,7 +24,8 @@ function App() {
           <Route path="/client-registration" element={<ClientRegistration />} />
           <Route path="/artisan-registration" element={<ArtisanRegistration />} />
         </Routes>
-      </main>
+      <Footer />
+      <FloatingWhatsApp phoneNumber="2348********" message="Hello, I’d like to inquire about your services" />
       <TailwindIndicator />
     </div>
   );

@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import Container from "@/components/container";
 
 const Contact = () => {
   const form = useForm<ContactFormData>({
@@ -29,10 +30,11 @@ const Contact = () => {
   };
 
   return (
-    <div className="w-full mx-auto px-4 py-12 grid md:grid-cols-2 gap-10">
-      <div>
-        <h1 className="text-3xl font-bold mb-4">Contact BlueCollar</h1>
-        <p className="text-lg mb-4">
+    <Container>
+      <div className="w-full mx-auto px-4 py-12 grid md:grid-cols-2 gap-10">
+        <div>
+          <h1 className="text-3xl font-bold mb-4">Contact BlueCollar</h1>
+          <p className="text-lg mb-4">
           Whether you're a customer looking for help or an artisan ready to join our network, we'd love to hear from you.
           Reach out and a member of the BlueCollar team will get back to you shortly.
         </p>
@@ -105,6 +107,7 @@ const Contact = () => {
         </Form>
       </div>
     </div>
+    </Container>
   );
 };
 
