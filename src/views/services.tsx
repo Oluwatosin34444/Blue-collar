@@ -77,8 +77,8 @@ const ServicesPage = () => {
   }
 
   return (
-    <div className="bg-gray-50 py-16">
-      <Container>
+    <div className="bg-gray-50 py-20">
+      <Container className="py-10">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Our Services</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
