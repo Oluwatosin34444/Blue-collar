@@ -123,8 +123,8 @@ const Artisans = () => {
   };
 
   return (
-    <Container>
-      <div className="mb-8">
+    <Container className="space-y-4 py-10">
+      <div className="space-y-4">
         <h1 className="text-3xl font-bold mb-4">Find Skilled Artisans</h1>
         {includedServices.length > 0 && (
           <div className="mb-4 p-4 bg-blue-50 rounded-lg">
