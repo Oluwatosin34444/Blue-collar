@@ -92,12 +92,10 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        {/* Desktop Sidebar */}
         <div className="hidden lg:flex w-64 bg-white border-r flex-col justify-between">
           <SidebarContent />
         </div>
 
-        {/* Mobile Menu Button + Sheet */}
         <div className="lg:hidden fixed top-4 right-4 z-50">
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
@@ -112,7 +110,6 @@ export function DashboardLayout() {
           </Sheet>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <main className="p-4 lg:p-8">
             <Outlet />
