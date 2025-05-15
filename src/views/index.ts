@@ -7,6 +7,9 @@ import Login from "./login";
 import Register from "./register";
 import ClientRegistration from "./client-registration";
 import ArtisanRegistration from "./artisan-registration";
+import Dashboard from "./dashboard/dashboard";
+import Bookings from "./dashboard/bookings";
+import Profile from "./dashboard/profile";
 
 
-export { Home, About, Contact, Artisans, Services, Login, Register, ClientRegistration, ArtisanRegistration };
+export { Home, About, Contact, Artisans, Services, Login, Register, ClientRegistration, ArtisanRegistration, Dashboard, Bookings, Profile };
