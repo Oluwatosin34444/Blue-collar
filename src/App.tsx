@@ -21,7 +21,7 @@ import FloatingWhatsApp from "./components/floating-whatsapp";
 import { AuthProvider } from "./contexts/auth-context";
 import { ProtectedRoute } from "./components/protected-route";
 import { DashboardLayout } from "./components/dashboard-layout";
-
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const location = useLocation();
@@ -70,6 +70,7 @@ function App() {
           />
         )}
         <TailwindIndicator />
+        <Toaster />
       </div>
     </AuthProvider>
   );

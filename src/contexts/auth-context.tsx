@@ -1,23 +1,50 @@
 import { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  authApi,
+  type ArtisanSignUpData,
+  type ArtisanSignUpResponse,
+  type UserSignUpData,
+  type UserSignUpResponse,
+} from "../services/auth-api";
 
-interface User {
+type BaseUser = {
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
-  name: string;
-  role: "User" | "Artisan";
-  imageLink: string;
-  rating?: number;
-  booked?: boolean;
-}
+  phone: string;
+  location: string;
+  active: boolean;
+  id: string;
+};
+
+type RegularUser = BaseUser & {
+  role: "User";
+  userImage: string;
+  password?: string;
+};
+
+type Artisan = BaseUser & {
+  role: "Artisan";
+  service: string;
+  artisanImage: string;
+  booked: boolean;
+};
+
+type User = RegularUser | Artisan;
 
 export interface AuthContextType {
+  role: "User" | "Artisan";
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  artisanSignUp: (data: ArtisanSignUpData) => Promise<ArtisanSignUpResponse>;
+  userSignUp: (data: UserSignUpData) => Promise<UserSignUpResponse>;
+  userLogin: (email: string, password: string) => Promise<void>;
+  artisanLogin: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,47 +66,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const artisanLogin = async (email: string, password: string) => {
     setIsLoading(true);
-    console.log(email, password); //TODO: remove this in actual implementation, for simulation purpose only
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const isArtisan = email.includes("artisan");
-      const response = isArtisan
-        ? {
-            message: "Login successful",
-            token:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7fSwiaWF0IjoxNjE3MjY4NzQxfQ.SmZg2Kx5v8dLz3eW9Z5h1H7b6w7F5k5g5k5g5k5g5k",
-            username: "artisan123",
-            email: "artisan@example.com",
-            name: "John Doe",
-            role: "Artisan" as const,
-            booked: false,
-            rating: 4.5,
-            imageLink:
-              "https://api.dicebear.com/7.x/avataaars/svg?seed=artisan",
-            success: true,
-          }
-        : {
-            message: "Login successful",
-            token:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7fSwiaWF0IjoxNjE3MjY4NzQxfQ.SmZg2Kx5v8dLz3eW9Z5h1H7b6w7F5k5g5k5g5k5g5k",
-            username: "user123",
-            email: "user@example.com",
-            name: "John Doe",
-            role: "User" as const,
-            imageLink: "https://api.dicebear.com/7.x/avataaars/svg?seed=user",
-            success: true,
-          };
-
+      const response = await authApi.artisanLogin(email, password);
+      console.log("artisan login response", response);
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
 
       setToken(token);
-      setUser(userData as User);
+      setUser({ ...userData, role: "Artisan" });
 
       navigate("/dashboard");
     } catch (error) {
@@ -90,21 +88,92 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-    navigate("/");
+  const artisanSignUp = async (data: ArtisanSignUpData) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.artisanSignUp(data);
+      return response;
+    } catch (error) {
+      console.error("Artisan signup failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const userSignUp = async (data: UserSignUpData) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.userSignUp(data);
+      return response;
+    } catch (error) {
+      console.error("User signup failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const userLogin = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.userLogin(email, password);
+      console.log("user login response", response);
+      const { token, ...userData } = response;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      setToken(token);
+      setUser({ ...userData, role: "User" });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("User login failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      if (user?.role === "Artisan") {
+        await authApi.artisanLogout();
+      } else {
+        await authApi.userLogout();
+      }
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setToken(null);
+      setUser(null);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        role: user?.role as "User" | "Artisan",
+        user,
+        token,
+        isLoading,
+        logout,
+        artisanSignUp,
+        artisanLogin,
+        userLogin,
+        userSignUp,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 export { AuthContext };
-
-
