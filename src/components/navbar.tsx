@@ -25,6 +25,18 @@ export function MyAppNav() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const { user, logout } = useAuth();
 
+  console.log("user", user);
+
+  const handleLogout = async () => {
+    console.log("logging out");
+    try {
+      await logout();
+      console.log("logged out");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   const suggestions = [
     ...services.map((s) => ({ type: "service", value: s })),
     ...locations.map((l) => ({ type: "location", value: l })),
@@ -242,8 +254,8 @@ export function MyAppNav() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar>
-                        <AvatarImage src={user.imageLink} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.role === "Artisan" ? user.artisanImage : user.userImage} />
+                        <AvatarFallback>{user.firstName.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
@@ -254,7 +266,7 @@ export function MyAppNav() {
                     <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>
                       Profile Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={logout} className="text-red-600">
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                       Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -366,7 +378,7 @@ export function MyAppNav() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start text-red-600"
-                            onClick={logout}
+                            onClick={handleLogout}
                           >
                             Sign out
                           </Button>

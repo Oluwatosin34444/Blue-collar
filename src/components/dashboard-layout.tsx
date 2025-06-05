@@ -78,11 +78,11 @@ export function DashboardLayout() {
 
       <div className="flex items-center space-x-3 mb-6 p-4">
         <Avatar>
-          <AvatarImage src={user?.imageLink} />
-          <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+          <AvatarImage src={user?.role === "Artisan" ? user?.artisanImage : user?.userImage} />
+          <AvatarFallback>{user?.firstName?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-medium">{user?.name}</p>
+          <p className="font-medium">{user?.firstName} {user?.lastName}</p>
           <p className="text-sm text-gray-500">{user?.role}</p>
         </div>
       </div>

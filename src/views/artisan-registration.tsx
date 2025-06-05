@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { artisanRegistrationSchema, type ArtisanRegistrationFormData } from "@/lib/schemas/auth";
+import { toast } from "sonner";
+import {
+  artisanRegistrationSchema,
+  type ArtisanRegistrationFormData,
+} from "@/lib/schemas/auth";
 import {
   Form,
   FormControl,
@@ -21,6 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { locations } from "@/lib/constant";
+import { useAuth } from "@/contexts/use-auth";
+import type { ArtisanSignUpData } from "@/services/auth-api";
+import { PhoneInput } from "@/components/phone-input";
+import { servicesApi } from "@/services/services-api";
+// import { LocationSelect } from "@/components/location-select";
 
 const services = [
   "Electrical",
@@ -37,32 +46,55 @@ const services = [
   "Laundry",
   "Hairdressing",
   "Tailoring",
-  "Barbing"
+  "Barbing",
 ];
 
 const ArtisanRegister = () => {
+  const { artisanSignUp, isLoading } = useAuth();
   const form = useForm<ArtisanRegistrationFormData>({
     resolver: zodResolver(artisanRegistrationSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
+      phone: "",
+      username: "",
       password: "",
       confirmPassword: "",
       service: "",
       location: "",
       agreeToTerms: false,
     },
+    mode: "onChange",
   });
 
-  const onSubmit = (data: ArtisanRegistrationFormData) => {
-    console.log("Artisan registration attempt:", data);
-    // Handle registration logic here
+  const onSubmit = async (data: ArtisanRegistrationFormData) => {
+    if (!data.agreeToTerms) {
+      toast.error("You must agree to the terms and conditions");
+      return;
+    }
+
+    const signUpData: ArtisanSignUpData = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      username: data.username,
+      email: data.email,
+      phone: data.phone,
+      service: data.service,
+      location: data.location,
+    };
+
+    try {
+      await artisanSignUp(signUpData);
+      await servicesApi.addService(data.service);
+    } catch (error) {
+      console.error("Artisan registration failed:", error);
+    }
   };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+      <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-bold">Create Artisan Account</h2>
           <p className="mt-2 text-gray-600">
@@ -71,7 +103,12 @@ const ArtisanRegister = () => {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log(errors);
+            })}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -109,62 +146,128 @@ const ArtisanRegister = () => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="john@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="service"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select your service" />
-                      </SelectTrigger>
+                      <Input type="text" placeholder="john_doe" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service} value={service}>
-                          {service}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select your location" />
-                      </SelectTrigger>
+                      <PhoneInput
+                        placeholder="Enter a phone number"
+                        {...field}
+                        international
+                        defaultCountry="NG"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {locations.map((location) => (
-                        <SelectItem key={location} value={location}>
-                          {location}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select your service" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {services.map((service) => (
+                          <SelectItem key={service} value={service}>
+                            {service}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <LocationSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Search for a location..."
+                        disabled={field.disabled}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> */}
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select your location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -218,8 +321,15 @@ const ArtisanRegister = () => {
               )}
             />
 
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  Creating account...
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
         </Form>
@@ -240,4 +350,4 @@ const ArtisanRegister = () => {
   );
 };
 
-export default ArtisanRegister; 
+export default ArtisanRegister;
