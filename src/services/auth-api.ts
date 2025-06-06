@@ -9,12 +9,29 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to add auth token
+// Define endpoints that don't need authentication
+const PUBLIC_ENDPOINTS = [
+  "/artisan-auth/signup",
+  "/artisan-auth/login",
+  "/auth/signup",
+  "/auth/login",
+];
+
+// Add request interceptor to add auth token (excluding public endpoints)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Check if the current request is to a public endpoint
+  const isPublicEndpoint = PUBLIC_ENDPOINTS.some((endpoint) =>
+    config.url?.includes(endpoint)
+  );
+
+  // Only add auth token if it's not a public endpoint
+  if (!isPublicEndpoint) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
+
   return config;
 });
 
@@ -27,6 +44,7 @@ export interface ArtisanSignUpData {
   service: string;
   location: string;
   artisanImage?: File | null;
+  password: string;
 }
 
 export interface UserSignUpData {
@@ -37,7 +55,6 @@ export interface UserSignUpData {
   password: string;
   phone: string;
   location: string;
-  role: string;
   userImage?: File | null;
 }
 
@@ -87,6 +104,7 @@ export const authApi = {
         },
       }
     );
+    console.log("artisan signup response", response.data);
     return response.data;
   },
 
@@ -103,7 +121,6 @@ export const authApi = {
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, value);
     });
-
     const response = await api.post<UserSignUpResponse>(
       "/auth/signup",
       formData,
@@ -113,6 +130,7 @@ export const authApi = {
         },
       }
     );
+    console.log("user signup response", response.data);
     return response.data;
   },
 
@@ -149,8 +167,8 @@ export const authApi = {
     return response.data;
   },
 
-  getAllArtisans: async () => {
-    const response = await api.get("/artisan");
+  getAllArtisans: async (page: number) => {
+    const response = await api.get(`/artisan?page=${page}`);
     return response.data;
   },
 

@@ -20,15 +20,15 @@ import { useAuth } from "@/contexts/use-auth";
 import type { UserSignUpData } from "@/services/auth-api";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/phone-input";
-import { LocationSelect } from "@/components/location-select";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import { locations } from "@/lib/constant";
+// import { LocationSelect } from "@/components/location-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { locations } from "@/lib/constant";
 
 const ClientRegister = () => {
   const { userSignUp, isLoading } = useAuth();
@@ -44,7 +44,6 @@ const ClientRegister = () => {
       agreeToTerms: false,
       phone: "",
       location: "",
-      role: "User",
     },
     mode: "onChange",
   });
@@ -55,13 +54,13 @@ const ClientRegister = () => {
       return;
     }
 
-    const locationParts = data.location.split("|");
-    const locationData = {
-      placeId: locationParts[0] || "",
-      description: locationParts[1] || data.location,
-    };
+    // const locationParts = data.location.split("|");
+    // const locationData = {
+    //   placeId: locationParts[0] || "",
+    //   description: locationParts[1] || data.location,
+    // };
 
-    console.log("locationData", locationData, locationParts);
+    // console.log("locationData", locationData, locationParts);
 
     const signUpData: UserSignUpData = {
       firstName: data.firstName,
@@ -70,8 +69,7 @@ const ClientRegister = () => {
       email: data.email,
       password: data.password,
       phone: data.phone,
-      location: JSON.stringify(locationData),
-      role: "User",
+      location: data.location,
     };
 
     try {
@@ -186,6 +184,25 @@ const ClientRegister = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <LocationSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Search for a location..."
+                        disabled={field.disabled}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> */}
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -203,25 +220,6 @@ const ClientRegister = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
-
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <LocationSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Search for a location..."
-                        disabled={field.disabled}
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
