@@ -1,7 +1,7 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/contexts/use-auth';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/contexts/use-auth";
 import {
   Form,
   FormControl,
@@ -9,16 +9,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PhoneInput } from "@/components/phone-input";
 
 const profileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 characters'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 characters"),
+  location: z.string().min(5, "Address must be at least 5 characters"),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -28,16 +29,17 @@ const Profile = () => {
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: '',
-      address: '',
+      name: user?.firstName + " " + user?.lastName || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      location: user?.location || "",
     },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: ProfileFormData) => {
-    console.log('Profile update:', data);
-    // Handle profile update logic here
+    console.log("Profile update:", data);
+    // TODO: Handle profile update logic here
   };
 
   return (
@@ -52,11 +54,13 @@ const Profile = () => {
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center space-x-6 mb-8">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={user?.imageLink} />
-            <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+          <AvatarImage src={user?.role === "Artisan" ? user?.artisanImage : user?.userImage} />
+            <AvatarFallback>{user?.firstName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-lg font-medium text-gray-900">{user?.name}</h2>
+            <h2 className="text-lg font-medium text-gray-900">
+              {user?.firstName + " " + user?.lastName}
+            </h2>
             <p className="text-sm text-gray-500">{user?.role}</p>
           </div>
         </div>
@@ -71,7 +75,7 @@ const Profile = () => {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -85,7 +89,7 @@ const Profile = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input type="email" {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,7 +104,13 @@ const Profile = () => {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input type="tel" {...field} />
+                    <PhoneInput
+                      placeholder="Enter a phone number"
+                      {...field}
+                      international
+                      defaultCountry="NG"
+                      readOnly
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -109,12 +119,12 @@ const Profile = () => {
 
             <FormField
               control={form.control}
-              name="address"
+              name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} readOnly />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -129,4 +139,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

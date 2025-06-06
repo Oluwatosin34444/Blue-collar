@@ -8,6 +8,8 @@ import {
   type UserSignUpData,
   type UserSignUpResponse,
 } from "../services/auth-api";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 type BaseUser = {
   firstName: string;
@@ -20,13 +22,13 @@ type BaseUser = {
   id: string;
 };
 
-type RegularUser = BaseUser & {
+export type RegularUser = BaseUser & {
   role: "User";
   userImage: string;
   password?: string;
 };
 
-type Artisan = BaseUser & {
+export type Artisan = BaseUser & {
   role: "Artisan";
   service: string;
   artisanImage: string;
@@ -82,6 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("An error occurred");
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -92,9 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.artisanSignUp(data);
+      toast.success(response.message);
+      navigate("/login");
       return response;
     } catch (error) {
       console.error("Artisan signup failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("An error occurred");
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -105,9 +119,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.userSignUp(data);
+      toast.success(response.message);
+      navigate("/login");
       return response;
     } catch (error) {
       console.error("User signup failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("An error occurred");
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -130,6 +151,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       navigate("/dashboard");
     } catch (error) {
       console.error("User login failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("An error occurred");
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -151,6 +177,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("An error occurred");
+      }
       throw error;
     } finally {
       setIsLoading(false);

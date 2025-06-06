@@ -28,7 +28,7 @@ import { locations } from "@/lib/constant";
 import { useAuth } from "@/contexts/use-auth";
 import type { ArtisanSignUpData } from "@/services/auth-api";
 import { PhoneInput } from "@/components/phone-input";
-import { servicesApi } from "@/services/services-api";
+// import { servicesApi } from "@/services/services-api";
 // import { LocationSelect } from "@/components/location-select";
 
 const services = [
@@ -74,6 +74,11 @@ const ArtisanRegister = () => {
       return;
     }
 
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     const signUpData: ArtisanSignUpData = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -82,11 +87,15 @@ const ArtisanRegister = () => {
       phone: data.phone,
       service: data.service,
       location: data.location,
+      password: data.password,
     };
 
+    console.log("signUpData", signUpData);
+
     try {
-      await artisanSignUp(signUpData);
-      await servicesApi.addService(data.service);
+      const response = await artisanSignUp(signUpData);
+      console.log("response", response);
+      // await servicesApi.addService(data.service);
     } catch (error) {
       console.error("Artisan registration failed:", error);
     }

@@ -1,83 +1,116 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { CustomPagination } from '@/components/custom-pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { locations, services } from '@/lib/constant';
-import Container from '@/components/container';
+"use client";
+
+import type React from "react";
+
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { CustomPagination } from "@/components/custom-pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { locations, services } from "@/lib/constant";
+import Container from "@/components/container";
+import { authApi } from "@/services/auth-api";
 
 interface Artisan {
-  id: number;
-  name: string;
-  service: string;
-  rating: number;
-  reviews: number;
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
   location: string;
-  contact: string;
-  address: string;
-  image: string;
+  artisanImage: string;
+  active: boolean;
+  service: string;
+  booked: boolean;
+  phone: string;
+  rating: number;
+  dateAdded: string;
 }
 
-const mockArtisans: Artisan[] = Array.from({ length: 25 }, (_, i) => {
-  const service = services[i % services.length];
-  const location = locations[i % locations.length];
-  return {
-    id: i + 1,
-    name: `Artisan ${i + 1}`,
-    service,
-    rating: +(4 + Math.random()).toFixed(1),
-    reviews: Math.floor(Math.random() * 200 + 10),
-    location,
-    contact: `artisan${i + 1}@bluecollar.com`,
-    address: `${100 + i} ${location} Main Rd, Nigeria`,
-    image: `https://randomuser.me/api/portraits/men/${i % 10}.jpg`,
-  };
-});
+interface ArtisanResponse {
+  artisanItems: Artisan[];
+  totalArtisanItems: number;
+  currentPage: number;
+  totalPages: number;
+  success: boolean;
+}
 
 const ITEMS_PER_PAGE = 10;
 
 const Artisans = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [service, setService] = useState(searchParams.get('service') || '');
-  const [location, setLocation] = useState(searchParams.get('location') || '');
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [service, setService] = useState("");
+  const [location, setLocation] = useState("");
+  const [page, setPage] = useState(1);
   const [includedServices, setIncludedServices] = useState<string[]>([]);
+  const [artisans, setArtisans] = useState<Artisan[]>([]);
+  // const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(true);
 
+  // Sync URL parameters with state
   useEffect(() => {
-    const includedServicesParam = searchParams.get('includedServices');
+    const search = searchParams.get("search") || "";
+    const serviceParam = searchParams.get("service") || "";
+    const locationParam = searchParams.get("location") || "";
+    const pageParam = Number(searchParams.get("page")) || 1;
+    const includedServicesParam = searchParams.get("includedServices");
+
+    setSearchTerm(search);
+    setService(serviceParam);
+    setLocation(locationParam);
+    setPage(pageParam);
+
     if (includedServicesParam) {
-      const services = includedServicesParam.split(',');
-      console.log('Included services from URL:', services);
+      const services = includedServicesParam.split(",").filter((s) => s.trim());
       setIncludedServices(services);
+    } else {
+      setIncludedServices([]);
     }
   }, [searchParams]);
 
-  const filteredArtisans = mockArtisans.filter(artisan => {
+  useEffect(() => {
+    const fetchArtisans = async () => {
+      setLoading(true);
+      try {
+        const data = (await authApi.getAllArtisans(page)) as ArtisanResponse;
+        setArtisans(data.artisanItems);
+        // setTotalPages(data.totalPages)
+      } catch (error) {
+        console.error("Error fetching artisans:", error);
+        setArtisans([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArtisans();
+  }, [page]);
+
+  const filteredArtisans = artisans?.filter((artisan) => {
     const matchesService = !service || artisan.service === service;
     const matchesLocation = !location || artisan.location === location;
-    const matchesSearch = !searchTerm ||
-      artisan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      !searchTerm ||
+      `${artisan.firstName} ${artisan.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       artisan.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       artisan.service.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Check if artisan's service matches any of the included services
-    const matchesIncludedServices = includedServices.length === 0 || 
-      includedServices.some(includedService => 
-        artisan.service.toLowerCase() === includedService.toLowerCase()
-      );
 
-    console.log('Artisan:', artisan.name, {
-      service: artisan.service,
-      includedServices,
-      matchesService,
-      matchesLocation,
-      matchesSearch,
-      matchesIncludedServices,
-      finalResult: matchesService && matchesLocation && matchesSearch && matchesIncludedServices
-    });
+    const matchesIncludedServices =
+      includedServices.length === 0 ||
+      includedServices.some(
+        (includedService) =>
+          artisan.service.toLowerCase() === includedService.toLowerCase()
+      );
 
     if (includedServices.length > 0) {
       return matchesIncludedServices && matchesSearch;
@@ -86,41 +119,86 @@ const Artisans = () => {
     return matchesService && matchesLocation && matchesSearch;
   });
 
-  const totalPages = Math.ceil(filteredArtisans.length / ITEMS_PER_PAGE);
-  const paginatedArtisans = filteredArtisans?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedArtisans = filteredArtisans?.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
-  const handleFilterChange = (type: 'service' | 'location', value: string) => {
-    if (type === 'service') setService(value === 'all' ? '' : value);
-    if (type === 'location') setLocation(value === 'all' ? '' : value);
+  const handleFilterChange = (type: "service" | "location", value: string) => {
+    const newService =
+      type === "service" ? (value === "all" ? "" : value) : service;
+    const newLocation =
+      type === "location" ? (value === "all" ? "" : value) : location;
+
     setPage(1);
-    setSearchParams({
-      search: searchTerm,
-      service: type === 'service' ? (value === 'all' ? '' : value) : service,
-      location: type === 'location' ? (value === 'all' ? '' : value) : location,
-      page: '1',
-    });
+
+    const newParams: Record<string, string> = {
+      page: "1",
+    };
+
+    if (searchTerm) newParams.search = searchTerm;
+    if (newService) newParams.service = newService;
+    if (newLocation) newParams.location = newLocation;
+    if (includedServices.length > 0)
+      newParams.includedServices = includedServices.join(",");
+
+    setSearchParams(newParams);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    setSearchParams({
-      search: searchTerm,
-      service,
-      location,
-      page: '1',
-    });
+
+    const newParams: Record<string, string> = {
+      page: "1",
+    };
+
+    if (searchTerm) newParams.search = searchTerm;
+    if (service) newParams.service = service;
+    if (location) newParams.location = location;
+    if (includedServices.length > 0)
+      newParams.includedServices = includedServices.join(",");
+
+    setSearchParams(newParams);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    setSearchParams({
-      search: searchTerm,
-      service,
-      location,
+
+    const newParams: Record<string, string> = {
       page: String(newPage),
-    });
+    };
+
+    if (searchTerm) newParams.search = searchTerm;
+    if (service) newParams.service = service;
+    if (location) newParams.location = location;
+    if (includedServices.length > 0)
+      newParams.includedServices = includedServices.join(",");
+
+    setSearchParams(newParams);
   };
+
+  const clearIncludedServices = () => {
+    setIncludedServices([]);
+    setService("");
+    const newParams: Record<string, string> = {};
+
+    if (searchTerm) newParams.search = searchTerm;
+    if (location) newParams.location = location;
+    if (page > 1) newParams.page = String(page);
+
+    setSearchParams(newParams);
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="space-y-4 py-10">
@@ -128,7 +206,17 @@ const Artisans = () => {
         <h1 className="text-3xl font-bold mb-4">Find Skilled Artisans</h1>
         {includedServices.length > 0 && (
           <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Selected Services:</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Selected Services:</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearIncludedServices}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                Clear Services
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {includedServices.map((service, index) => (
                 <span
@@ -141,81 +229,150 @@ const Artisans = () => {
             </div>
           </div>
         )}
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-center mb-4">
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-col md:flex-row gap-4 items-center mb-4"
+        >
           <Input
             type="text"
             placeholder="Search by name, service, or location..."
             className="w-full"
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Select
-            defaultValue={service || 'all'}
-            onValueChange={value => handleFilterChange('service', value)}
+            value={service || "all"}
+            onValueChange={(value) => handleFilterChange("service", value)}
           >
             <SelectTrigger className="w-full border rounded-md px-3 py-2">
               <SelectValue placeholder="All Services" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Services</SelectItem>
-              {services.map(s => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+              {services.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select
-            defaultValue={location || 'all'}
-            onValueChange={value => handleFilterChange('location', value)}
+            value={location || "all"}
+            onValueChange={(value) => handleFilterChange("location", value)}
           >
             <SelectTrigger className="w-full border rounded-md px-3 py-2">
               <SelectValue placeholder="All Locations" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
-              {locations.map(loc => (
-                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+              {locations.map((loc) => (
+                <SelectItem key={loc} value={loc}>
+                  {loc}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700">Search</Button>
+          <Button
+            type="submit"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
+          >
+            Search
+          </Button>
         </form>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedArtisans?.map(artisan => (
-          <div
-            key={artisan.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition"
-            onClick={() => navigate(`/artisans/${artisan.id}`)}
-          >
-            <img
-              src={artisan.image}
-              alt={artisan.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold mb-2">{artisan.name}</h3>
-              <p className="text-gray-600 mb-2">{artisan.service}</p>
-              <div className="flex items-center mb-2">
-                <span className="text-yellow-400">★</span>
-                <span className="ml-1">{artisan.rating}</span>
-                <span className="text-gray-500 ml-1">({artisan.reviews} reviews)</span>
-              </div>
-              <p className="text-gray-600 mb-2">{artisan.location}</p>
-              <p className="text-gray-500 text-sm">Contact: {artisan.contact}</p>
+      {filteredArtisans?.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
+            <div className="text-gray-400 mb-4">
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"
+                />
+              </svg>
             </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Artisans Found
+            </h3>
+            <p className="text-gray-500 mb-4">
+              We couldn't find any artisans matching your search criteria.
+            </p>
+            <div className="text-sm text-gray-400">
+              {searchTerm && <p>Search: "{searchTerm}"</p>}
+              {service && <p>Service: {service}</p>}
+              {location && <p>Location: {location}</p>}
+              {includedServices.length > 0 && (
+                <p>Selected Services: {includedServices.join(", ")}</p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                setSearchTerm("");
+                setService("");
+                setLocation("");
+                setIncludedServices([]);
+                setPage(1);
+                setSearchParams({});
+              }}
+            >
+              Clear All Filters
+            </Button>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {paginatedArtisans?.map((artisan) => (
+            <div
+              key={artisan._id}
+              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition"
+              onClick={() => navigate(`/artisans/${artisan._id}`)}
+            >
+              <img
+                src={
+                  artisan.artisanImage ||
+                  `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
+                }
+                alt={`${artisan.firstName} ${artisan.lastName}`}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-xl font-semibold mb-2">{`${artisan.firstName} ${artisan.lastName}`}</h3>
+                <p className="text-gray-600 mb-2">{artisan.service}</p>
+                <div className="flex items-center mb-2">
+                  <span className="text-yellow-400">★</span>
+                  <span className="ml-1">{artisan.rating}</span>
+                </div>
+                <p className="text-gray-600 mb-2">{artisan.location}</p>
+                <p className="text-gray-500 text-sm">
+                  Contact: {artisan.phone}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <CustomPagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-        className="mt-8"
-      />
+      {filteredArtisans?.length > 0 && (
+        <CustomPagination
+          currentPage={page}
+          totalPages={Math.ceil(filteredArtisans.length / ITEMS_PER_PAGE)}
+          onPageChange={handlePageChange}
+          className="mt-8"
+        />
+      )}
     </Container>
   );
 };
 
-export default Artisans; 
+export default Artisans;

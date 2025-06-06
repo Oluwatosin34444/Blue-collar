@@ -18,7 +18,6 @@ export const clientRegistrationSchema = z
     password: z.string().min(8, "Password must be at least 8 characters"),
     phone: z.string().refine(isValidPhoneNumber, "Invalid phone number"),
     location: z.string().min(1, "Please select a location"),
-    role: z.enum(["User"]),
     userImage: imageSchema,
     confirmPassword: z.string(),
     agreeToTerms: z.boolean().refine((val) => val === true, {

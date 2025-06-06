@@ -25,8 +25,6 @@ export function MyAppNav() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const { user, logout } = useAuth();
 
-  console.log("user", user);
-
   const handleLogout = async () => {
     console.log("logging out");
     try {
@@ -177,7 +175,9 @@ export function MyAppNav() {
         <div className="w-full mx-auto py-1">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold text-gray-800">BlueCollar</Link>
+              <Link to="/" className="text-2xl font-bold text-gray-800">
+                BlueCollar
+              </Link>
             </div>
 
             <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
@@ -210,7 +210,10 @@ export function MyAppNav() {
                     onKeyDown={handleKeyDown}
                     style={{ boxShadow: "none" }}
                   />
-                  <Button type="submit" className="rounded-full px-8 ml-2 bg-blue-600 text-white hover:bg-blue-700">
+                  <Button
+                    type="submit"
+                    className="rounded-full px-8 ml-2 bg-blue-600 text-white hover:bg-blue-700"
+                  >
                     Search
                   </Button>
                 </form>
@@ -252,21 +255,42 @@ export function MyAppNav() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full"
+                    >
                       <Avatar>
-                        <AvatarImage src={user.role === "Artisan" ? user.artisanImage : user.userImage} />
-                        <AvatarFallback>{user.firstName.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={
+                            user.role === "Artisan"
+                              ? user.artisanImage
+                              : user.userImage
+                          }
+                        />
+                        <AvatarFallback>
+                          {user.firstName.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate('/dashboard/bookings')}>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/dashboard/bookings")}
+                    >
                       Bookings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/dashboard/profile")}
+                    >
                       Profile Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600"
+                    >
                       Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -323,7 +347,10 @@ export function MyAppNav() {
                           onKeyDown={handleKeyDown}
                           style={{ boxShadow: "none" }}
                         />
-                        <Button type="submit" className="ml-2 bg-blue-600 text-white hover:bg-blue-700">
+                        <Button
+                          type="submit"
+                          className="ml-2 bg-blue-600 text-white hover:bg-blue-700"
+                        >
                           Go
                         </Button>
                       </form>
@@ -364,14 +391,21 @@ export function MyAppNav() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start"
-                            onClick={() => navigate('/dashboard/bookings')}
+                            onClick={() => navigate("/dashboard")}
+                          >
+                            Dashboard
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate("/dashboard/bookings")}
                           >
                             Bookings
                           </Button>
                           <Button
                             variant="ghost"
                             className="w-full justify-start"
-                            onClick={() => navigate('/dashboard/profile')}
+                            onClick={() => navigate("/dashboard/profile")}
                           >
                             Profile Settings
                           </Button>
