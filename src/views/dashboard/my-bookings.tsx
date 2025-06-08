@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/use-auth';
 
-const Bookings = () => {
+const MyBookings = () => {
   const { user } = useAuth();
 
   return (
@@ -8,7 +8,7 @@ const Bookings = () => {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
         <p className="mt-1 text-sm text-gray-500">
-          View and manage your service bookings
+          Track your service requests
         </p>
       </div>
 
@@ -21,4 +21,4 @@ const Bookings = () => {
   );
 };
 
-export default Bookings; 
+export default MyBookings;

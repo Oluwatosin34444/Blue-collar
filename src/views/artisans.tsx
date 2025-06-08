@@ -82,7 +82,7 @@ const Artisans = () => {
       setLoading(true);
       try {
         const data = (await authApi.getAllArtisans(page)) as ArtisanResponse;
-        setArtisans(data.artisanItems);
+        setArtisans(data.artisanItems.filter((artisan) => artisan.active));
         // setTotalPages(data.totalPages)
       } catch (error) {
         console.error("Error fetching artisans:", error);

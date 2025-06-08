@@ -17,37 +17,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { locations } from "@/lib/constant";
 import { useAuth } from "@/contexts/use-auth";
-import type { ArtisanSignUpData } from "@/services/auth-api";
+import type { ArtisanSignUpData } from "@/lib/types";
 import { PhoneInput } from "@/components/phone-input";
-// import { servicesApi } from "@/services/services-api";
+import { services } from "@/lib/constant";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { servicesApi } from "@/services/services-api";
 // import { LocationSelect } from "@/components/location-select";
-
-const services = [
-  "Electrical",
-  "Plumbing",
-  "Carpentry",
-  "Painting",
-  "Masonry",
-  "Tiling",
-  "POP/False Ceiling",
-  "Welding/Fabrication",
-  "Generator Repair",
-  "AC Repair",
-  "Cleaning",
-  "Laundry",
-  "Hairdressing",
-  "Tailoring",
-  "Barbing",
-];
 
 const ArtisanRegister = () => {
   const { artisanSignUp, isLoading } = useAuth();
@@ -90,12 +81,9 @@ const ArtisanRegister = () => {
       password: data.password,
     };
 
-    console.log("signUpData", signUpData);
-
     try {
-      const response = await artisanSignUp(signUpData);
-      console.log("response", response);
-      // await servicesApi.addService(data.service);
+      await artisanSignUp(signUpData);
+      await servicesApi.addService(data.service);
     } catch (error) {
       console.error("Artisan registration failed:", error);
     }
@@ -207,24 +195,60 @@ const ArtisanRegister = () => {
                 name="service"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Service Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select your service" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service} value={service}>
-                            {service}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Service</FormLabel>
+                    <div className="relative">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between border-input font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? services?.find(
+                                    (service) => service === field.value
+                                  ) ?? field.value
+                                : "Select Service"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput placeholder="Search Service..." />
+                            <CommandList>
+                              <CommandEmpty>Not found.</CommandEmpty>
+                              <CommandGroup>
+                                {services?.map((service) => (
+                                  <CommandItem
+                                    value={service}
+                                    key={service}
+                                    onSelect={() => {
+                                      form.setValue("service", service);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        service === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {service}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -255,23 +279,58 @@ const ArtisanRegister = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select your location" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {locations.map((location) => (
-                          <SelectItem key={location} value={location}>
-                            {location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between border-input font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? locations?.find(
+                                    (location) => location === field.value
+                                  ) ?? field.value
+                                : "Select Location"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput placeholder="Search Location..." />
+                            <CommandList>
+                              <CommandEmpty>Not found.</CommandEmpty>
+                              <CommandGroup>
+                                {locations?.map((location) => (
+                                  <CommandItem
+                                    value={location}
+                                    key={location}
+                                    onSelect={() => {
+                                      form.setValue("location", location);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        location === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {location}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

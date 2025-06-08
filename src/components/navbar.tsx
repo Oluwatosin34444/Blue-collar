@@ -273,14 +273,23 @@ export function MyAppNav() {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent
+                    align="end"
+                    className="border-input font-medium"
+                  >
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => navigate("/dashboard/bookings")}
+                      onClick={() =>
+                        navigate(
+                          user.role === "Artisan"
+                            ? "/dashboard/bookings"
+                            : "/dashboard/my-bookings"
+                        )
+                      }
                     >
-                      Bookings
+                      {user.role === "Artisan" ? "Bookings" : "My Bookings"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate("/dashboard/profile")}
@@ -289,7 +298,7 @@ export function MyAppNav() {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleLogout}
-                      className="text-red-600"
+                      className="text-red-600 hover:text-red-600"
                     >
                       Sign out
                     </DropdownMenuItem>
