@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/use-auth";
-import type { UserSignUpData } from "@/services/auth-api";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/phone-input";
 // import { LocationSelect } from "@/components/location-select";
@@ -29,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { locations } from "@/lib/constant";
+import type { UserSignUpData } from "@/lib/types";
 
 const ClientRegister = () => {
   const { userSignUp, isLoading } = useAuth();
