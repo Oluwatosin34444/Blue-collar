@@ -1,8 +1,4 @@
-import { useAuth } from '@/contexts/use-auth';
-
 const MyBookings = () => {
-  const { user } = useAuth();
-
   return (
     <div>
       <div className="mb-8">
@@ -13,9 +9,7 @@ const MyBookings = () => {
       </div>
 
       <div className="bg-white shadow rounded-lg">
-        <div className="overflow-x-auto">
- 
-        </div>
+        <div className="overflow-x-auto"></div>
       </div>
     </div>
   );
