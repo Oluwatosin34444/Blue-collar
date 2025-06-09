@@ -25,8 +25,9 @@ export interface BookingOrder {
 }
 
 export const bookingApi = {
-  getBookingOrders: async () => {
-    const response = await api.get("/booking-orders");
+  getBookingOrders: async (page: number) => {
+    const response = await api.get(`/booking-orders?page=${page}`);
+    console.log(response.data);
     return response.data;
   },
 

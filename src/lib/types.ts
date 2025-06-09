@@ -86,19 +86,6 @@ export interface ArtisanProfileResponse {
   active: boolean;
 }
 
-//Let artisan update profile expect this file type
-export type ArtisanUpdateProfileData = {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone: string;
-  location: string;
-  service: string;
-  active: boolean;
-  artisanImage: File | string | null;
-};
-
 //Let user update profile expect this file type
 export type UserUpdateProfileData = {
   firstName: string;
@@ -121,3 +108,12 @@ export type Review = {
   rating: number;
   username: string;
 };
+
+export interface BookingOrder {
+  _id: string
+  booked_by: string
+  booking_date: string
+  artisanId: string
+  service_type: string
+  state: number
+}

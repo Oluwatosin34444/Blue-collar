@@ -2,11 +2,10 @@ import type {
   ArtisanProfileResponse,
   ArtisanSignUpData,
   ArtisanSignUpResponse,
-  ArtisanUpdateProfileData,
   UserProfileResponse,
   UserSignUpData,
   UserSignUpResponse,
-  UserUpdateProfileData,
+  // UserUpdateProfileData,
 } from "@/lib/types";
 import axios from "axios";
 
@@ -125,8 +124,12 @@ export const authApi = {
     return response.data;
   },
 
-  updateUserProfile: async (data: UserUpdateProfileData) => {
-    const response = await api.post("/users/update-profile", data);
+  updateUserProfile: async (data: FormData) => {
+    const response = await api.post("/users/update-profile", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 
@@ -154,8 +157,12 @@ export const authApi = {
     return response.data;
   },
 
-  updateArtisanProfile: async (id: string, data: ArtisanUpdateProfileData) => {
-    const response = await api.patch(`/artisan/update/${id}`, data);
+  updateArtisanProfile: async (id: string, data: FormData) => {
+    const response = await api.patch(`/artisan/update/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 

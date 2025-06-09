@@ -51,7 +51,6 @@ const Profile = () => {
     updateArtisanProfile,
     updateUserPassword,
     updateArtisanPassword,
-    refreshUserData,
   } = useAuth();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -84,9 +83,6 @@ const Profile = () => {
     },
   });
 
-  const isImage = form.watch("userImage") || form.watch("artisanImage");
-  console.log("isImage", isImage);
-
   // Update form when user data changes
   useEffect(() => {
     if (user) {
@@ -101,10 +97,9 @@ const Profile = () => {
         service: user.role === "Artisan" ? user.service : "",
         userImage: user.role === "User" ? user.userImage : undefined,
         artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
-        active: user.role === "User" ? !!user.userImage : !!user.artisanImage,
+        active: user.active,
       });
 
-      // Set initial image preview from existing user image
       const existingImage =
         user.role === "Artisan" ? user.artisanImage : user.userImage;
       if (existingImage) {
@@ -147,7 +142,6 @@ const Profile = () => {
   );
 
   const onSubmit = async (data: ProfileFormData) => {
-    console.log("Profile update:", data);
 
     if (data.active && !selectedFile && !imagePreview) {
       toast.info("Upload your profile image to activate your account");
@@ -156,15 +150,19 @@ const Profile = () => {
 
     try {
       if (user?.role === "User") {
-        await updateUserProfile(data);
+        const userData = {
+          ...data,
+          userImage: selectedFile || data.userImage,
+        };
+        await updateUserProfile(userData);
       } else {
-        await updateArtisanProfile(data);
+        const artisanData = {
+          ...data,
+          artisanImage: selectedFile || data.artisanImage,
+        };
+        await updateArtisanProfile(artisanData);
       }
 
-      // Refresh user data after successful update
-      await refreshUserData();
-
-      // Clear selected file and reset preview to updated image
       setSelectedFile(null);
       if (imagePreview && imagePreview.startsWith("blob:")) {
         URL.revokeObjectURL(imagePreview);
@@ -340,7 +338,6 @@ const Profile = () => {
                             {...field}
                             international
                             defaultCountry="NG"
-                            readOnly
                           />
                         </FormControl>
                         <FormMessage />

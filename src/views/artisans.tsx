@@ -17,10 +17,9 @@ import {
 import { locations, services } from "@/lib/constant";
 import Container from "@/components/container";
 import { authApi } from "@/services/auth-api";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useAuth } from "@/contexts/use-auth";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Review } from "@/lib/types";
-import { BookingModal } from "@/components/booking-modal";
+import { Rating, RatingButton } from "@/components/ui/rating";
 
 interface Artisan {
   _id: string;
@@ -50,7 +49,6 @@ interface ArtisanResponse {
 const ITEMS_PER_PAGE = 10;
 
 const Artisans = () => {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,10 +86,7 @@ const Artisans = () => {
       setLoading(true);
       try {
         const data = (await authApi.getAllArtisans(page)) as ArtisanResponse;
-        setArtisans(
-          data.artisanItems.filter((artisan) => artisan.active === false)
-        ); //TODO: Change to true
-        // setTotalPages(data.totalPages)
+        setArtisans(data.artisanItems.filter((artisan) => artisan.active));
       } catch (error) {
         console.error("Error fetching artisans:", error);
         setArtisans([]);
@@ -344,7 +339,7 @@ const Artisans = () => {
             <Card
               key={artisan._id}
               onClick={() => navigate(`/artisans/${artisan._id}`)}
-              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-none"
+              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-none pt-0"
             >
               <img
                 src={
@@ -352,39 +347,23 @@ const Artisans = () => {
                   `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
                 }
                 alt={`${artisan.firstName} ${artisan.lastName}`}
-                className="w-full h-48 object-cover rounded-t-lg"
+                className="w-full h-54 object-cover rounded-t-lg"
               />
-              <CardContent className="space-y-2 mt-4">
+              <CardContent className="space-y-1">
                 <h3 className="text-xl font-semibold">{`${artisan.firstName} ${artisan.lastName}`}</h3>
                 <p className="text-gray-600">{artisan.service}</p>
-                <div className="flex items-center text-sm text-yellow-500">
-                  <span>★</span>
-                  <span className="ml-1 text-gray-800">{artisan.rating}</span>
+                <div className="flex items-center text-sm">
+                  <Rating defaultValue={artisan.rating} readOnly>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <RatingButton key={index} />
+                    ))}
+                  </Rating>
                 </div>
                 <p className="text-gray-600">{artisan.location}</p>
                 <p className="text-gray-500 text-sm">
                   Contact: {artisan.phone}
                 </p>
               </CardContent>
-              <CardFooter>
-                {/* <Button
-                  className="w-full cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent card onClick
-                    // Handle book action here
-                    handleBookArtisan(artisan._id, artisan.service);
-                  }}
-                >
-                  Book Artisan
-                </Button> */}
-                <BookingModal
-                  artisanName={`${artisan.firstName} ${artisan.lastName}`}
-                  artisanId={artisan._id}
-                  serviceName={artisan.service}
-                  userName={user?.username || ""}
-                  artisanBooked={artisan.booked}
-                />
-              </CardFooter>
             </Card>
           ))}
         </div>

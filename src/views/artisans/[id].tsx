@@ -5,7 +5,7 @@ import { authApi } from "@/services/auth-api";
 import type { Artisan } from "@/contexts/auth-context";
 import Container from "@/components/container";
 import { Rating, RatingButton } from "@/components/ui/rating";
-import { BookingModal } from "@/components/booking-modal";
+import { BookingModal } from "@/components/bookings/booking-modal";
 import { useAuth } from "@/contexts/use-auth";
 
 const ArtisanDetails = () => {
@@ -15,12 +15,17 @@ const ArtisanDetails = () => {
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [loading, setLoading] = useState(false);
 
+  console.log("artisan", artisan);
+
   useEffect(() => {
     const fetchArtisan = async () => {
       setLoading(true);
       try {
         const data = await authApi.getArtisanProfile(id as string);
-        setArtisan(data.artisan as Artisan);
+        setArtisan({
+          ...data.artisan,
+          id: data.artisan._id,
+        });
       } catch (error) {
         console.error("Error fetching artisan:", error);
         setArtisan(null);
@@ -109,13 +114,21 @@ const ArtisanDetails = () => {
         <p className="text-gray-700 mb-2">Location: {artisan.location}</p>
         <p className="text-gray-700 mb-2">Contact: {artisan.phone}</p>
 
-        <BookingModal
-          artisanName={`${artisan.firstName} ${artisan.lastName}`}
-          artisanId={artisan.id}
-          serviceName={artisan.service}
-          userName={user?.username || ""}
-          artisanBooked={artisan.booked}
-        />
+        {user?.role === "User" && (
+          <BookingModal
+            artisanName={`${artisan.firstName} ${artisan.lastName}`}
+            artisanId={artisan.id}
+            serviceName={artisan.service}
+            userName={user?.username || ""}
+            artisanBooked={artisan.booked}
+            onBookingSuccess={() => {
+              setArtisan(prevArtisan => prevArtisan ? {
+                ...prevArtisan,
+                booked: true,
+              } : null);
+            }}
+          />
+        )}
       </div>
 
       {artisan.reviews && artisan.reviews.length > 0 && (

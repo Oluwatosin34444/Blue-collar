@@ -9,9 +9,7 @@ import type {
   ArtisanProfileResponse,
   ArtisanSignUpData,
   ArtisanSignUpResponse,
-  ArtisanUpdateProfileData,
   UserProfileResponse,
-  UserUpdateProfileData,
   UserSignUpData,
   UserSignUpResponse,
   PasswordUpdateResponse,
@@ -90,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsedUser = JSON.parse(storedUser);
         setToken(storedToken);
         setUser(parsedUser);
-        
+
         // Validate stored data on app load
         if (!validateStoredUserData(parsedUser)) {
           clearAuthData();
@@ -103,38 +101,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // Helper function to validate stored user data
   const validateStoredUserData = (userData: unknown): userData is User => {
-    if (!userData || typeof userData !== 'object' || userData === null) {
+    if (!userData || typeof userData !== "object" || userData === null) {
       return false;
     }
 
     const userObj = userData as Record<string, unknown>;
-    
-    const requiredFields = ['id', 'email', 'firstName', 'lastName', 'role'];
-    const hasRequiredFields = requiredFields.every(field => 
-      typeof userObj[field] === 'string' && userObj[field]
+
+    const requiredFields = ["id", "email", "firstName", "lastName", "role"];
+    const hasRequiredFields = requiredFields.every(
+      (field) => typeof userObj[field] === "string" && userObj[field]
     );
 
-    const isValidRole = userObj.role === 'User' || userObj.role === 'Artisan';
-    
+    const isValidRole = userObj.role === "User" || userObj.role === "Artisan";
+
     // Additional role-specific validation
-    if (userObj.role === 'User') {
-      return hasRequiredFields && isValidRole && 
-             typeof userObj.userImage === 'string' &&
-             typeof userObj.username === 'string';
-    } else if (userObj.role === 'Artisan') {
-      return hasRequiredFields && isValidRole && 
-             typeof userObj.service === 'string' &&
-             typeof userObj.artisanImage === 'string' &&
-             typeof userObj.username === 'string' &&
-             typeof userObj.booked === 'boolean';
+    if (userObj.role === "User") {
+      return (
+        hasRequiredFields &&
+        isValidRole &&
+        typeof userObj.userImage === "string" &&
+        typeof userObj.username === "string"
+      );
+    } else if (userObj.role === "Artisan") {
+      return (
+        hasRequiredFields &&
+        isValidRole &&
+        typeof userObj.service === "string" &&
+        typeof userObj.artisanImage === "string" &&
+        typeof userObj.username === "string" &&
+        typeof userObj.booked === "boolean"
+      );
     }
-    
+
     return false;
   };
 
-  // Helper function to update local storage and state
   const updateLocalUserData = (userData: User) => {
     try {
       localStorage.setItem("user", JSON.stringify(userData));
@@ -145,7 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Helper function to clear authentication data
   const clearAuthData = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -153,7 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  // Validate current user data
   const validateUserData = (): boolean => {
     if (!user || !token) {
       return false;
@@ -170,7 +170,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
-      const userWithRole = { ...userData, role: "Artisan" } as unknown as Artisan;
+      const userWithRole = {
+        ...userData,
+        role: "Artisan",
+      } as unknown as Artisan;
       updateLocalUserData(userWithRole);
       setToken(token);
 
@@ -273,7 +276,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast.error("An error occurred");
       }
-      // Clear data even if logout API fails
       clearAuthData();
       navigate("/");
       throw error;
@@ -287,27 +289,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn("Cannot refresh user data: user or token is missing");
       return;
     }
-    
-    setIsLoading(true);
+
     try {
       if (user.role === "User") {
         const response = await authApi.getUserProfile();
-        const updatedUser = { ...response, role: "User" } as RegularUser;
+        const user = response.user;
+        const updatedUser = {
+          ...user,
+          role: "User",
+          id: user._id,
+        } as RegularUser;
         updateLocalUserData(updatedUser);
         toast.success("Profile data refreshed successfully");
       } else {
         const response = await authApi.getArtisanProfile(user.id);
-        const updatedUser = { ...response, role: "Artisan" } as Artisan;
+        console.log("artisan profile response", response);
+        const artisan = response.artisan;
+        const updatedUser = {
+          ...artisan,
+          role: "Artisan",
+          id: artisan._id,
+        } as Artisan;
         updateLocalUserData(updatedUser);
         toast.success("Profile data refreshed successfully");
       }
     } catch (error) {
       console.error("Failed to refresh user data:", error);
       if (error instanceof AxiosError) {
-        const errorMessage = error.response?.data.message || "Failed to refresh profile data";
+        const errorMessage =
+          error.response?.data.message || "Failed to refresh profile data";
         toast.error(errorMessage);
-        
-        // If token is invalid, clear auth data
+
         if (error.response?.status === 401) {
           clearAuthData();
           navigate("/login");
@@ -315,28 +327,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast.error("An error occurred while refreshing data");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const updateUserProfile = async (data: ProfileFormData) => {
-    setIsLoading(true);
     try {
-      const updateData: UserUpdateProfileData = {
-        firstName: data.firstName?.trim() || "",
-        lastName: data.lastName?.trim() || "",
-        username: data.username?.trim() || "",
-        email: data.email?.trim() || "",
-        phone: data.phone?.trim() || "",
-        location: data.location?.trim() || "",
-        active: data.active,
-        userImage: data.userImage || "",
-      };
+      const formData = new FormData();
+      formData.append("firstName", data.firstName?.trim() || "");
+      formData.append("lastName", data.lastName?.trim() || "");
+      formData.append("username", data.username?.trim() || "");
+      formData.append("email", data.email?.trim() || "");
+      formData.append("phone", data.phone?.trim() || "");
+      formData.append("location", data.location?.trim() || "");
+      formData.append("active", data.active.toString());
 
-      const response = await authApi.updateUserProfile(updateData);
+      if (data.userImage instanceof File) {
+        formData.append("userImage", data.userImage);
+      }
+
+      const response = await authApi.updateUserProfile(formData);
       toast.success(response.message || "Profile updated successfully");
-      
+
       await refreshUserData();
     } catch (error) {
       console.error("Update profile failed:", error);
@@ -346,8 +357,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.error("An error occurred");
       }
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -357,23 +366,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setIsLoading(true);
     try {
-      const updateData: ArtisanUpdateProfileData = {
-        firstName: data.firstName?.trim() || "",
-        lastName: data.lastName?.trim() || "",
-        username: data.username?.trim() || "",
-        email: data.email?.trim() || "",
-        phone: data.phone?.trim() || "",
-        location: data.location?.trim() || "",
-        service: data.service?.trim() || "",
-        artisanImage: data.artisanImage || "",
-        active: data.active,
-      };
+      const formData = new FormData();
+      formData.append("firstName", data.firstName?.trim() || "");
+      formData.append("lastName", data.lastName?.trim() || "");
+      formData.append("username", data.username?.trim() || "");
+      formData.append("email", data.email?.trim() || "");
+      formData.append("phone", data.phone?.trim() || "");
+      formData.append("location", data.location?.trim() || "");
+      formData.append("service", data.service?.trim() || "");
+      formData.append("active", data.active.toString());
 
-      console.log("update artisan profile data", updateData);
+      if (data.artisanImage instanceof File) {
+        formData.append("artisanImage", data.artisanImage);
+      }
 
-      const response = await authApi.updateArtisanProfile(user.id, updateData);
+      const response = await authApi.updateArtisanProfile(user.id, formData);
       toast.success(response.message || "Profile updated successfully");
       await refreshUserData();
     } catch (error) {
@@ -384,8 +392,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.error("An error occurred");
       }
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -441,14 +447,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.getUserProfile();
-      // Don't show success toast for profile fetch as it's usually called automatically
       return response;
     } catch (error) {
       console.error("Get user profile failed:", error);
       if (error instanceof AxiosError) {
-        const errorMessage = error.response?.data.message || "Failed to get user profile";
+        const errorMessage =
+          error.response?.data.message || "Failed to get user profile";
         toast.error(errorMessage);
-        
+
         // If token is invalid, clear auth data
         if (error.response?.status === 401) {
           clearAuthData();
@@ -463,7 +469,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getArtisanProfile = async (id: string): Promise<ArtisanProfileResponse | null> => {
+  const getArtisanProfile = async (
+    id: string
+  ): Promise<ArtisanProfileResponse | null> => {
     if (!id?.trim()) {
       toast.error("Artisan ID is required");
       return null;
@@ -472,14 +480,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.getArtisanProfile(id);
-      // Don't show success toast for profile fetch as it's usually called automatically
       return response;
     } catch (error) {
       console.error("Get artisan profile failed:", error);
       if (error instanceof AxiosError) {
-        const errorMessage = error.response?.data.message || "Failed to get artisan profile";
+        const errorMessage =
+          error.response?.data.message || "Failed to get artisan profile";
         toast.error(errorMessage);
-        
+
         // If token is invalid, clear auth data
         if (error.response?.status === 401) {
           clearAuthData();
