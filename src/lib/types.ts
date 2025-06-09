@@ -8,7 +8,7 @@ export interface ArtisanSignUpData {
   location: string;
   artisanImage?: File | null;
   password: string;
-};
+}
 
 export interface UserSignUpData {
   firstName: string;
@@ -19,7 +19,7 @@ export interface UserSignUpData {
   phone: string;
   location: string;
   userImage?: File | null;
-};
+}
 
 export interface ArtisanSignUpResponse {
   message: string;
@@ -34,7 +34,7 @@ export interface ArtisanSignUpResponse {
   booked: boolean;
   id: string;
   success: boolean;
-};
+}
 
 export interface UserSignUpResponse {
   message: string;
@@ -48,7 +48,7 @@ export interface UserSignUpResponse {
   id: string;
   userImage: string;
   success: boolean;
-};
+}
 
 //Let user login and get user profile return the same type
 export interface UserProfileResponse {
@@ -65,13 +65,13 @@ export interface UserProfileResponse {
   userImage: string;
   success: boolean;
   active: boolean;
-};
+}
 
 //Let artisan login and get artisan profile return the same type
 export interface ArtisanProfileResponse {
   token: string;
   message: string;
-  userName: string;
+  username: string;
   email: string;
   role: string;
   phone: string;
@@ -84,13 +84,13 @@ export interface ArtisanProfileResponse {
   booked: boolean;
   success: boolean;
   active: boolean;
-};
+}
 
 //Let artisan update profile expect this file type
 export type ArtisanUpdateProfileData = {
   firstName: string;
   lastName: string;
-  userName: string;
+  username: string;
   email: string;
   phone: string;
   location: string;
@@ -114,4 +114,10 @@ export type UserUpdateProfileData = {
 export interface PasswordUpdateResponse {
   message: string;
   success: boolean;
+}
+
+export type Review = {
+  comment: string;
+  rating: number;
+  username: string;
 };

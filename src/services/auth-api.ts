@@ -140,6 +140,7 @@ export const authApi = {
 
   getAllArtisans: async (page: number) => {
     const response = await api.get(`/artisan?page=${page}`);
+    console.log("all artisans response", response.data);
     return response.data;
   },
 

@@ -47,7 +47,6 @@ import { toast } from "sonner";
 const Profile = () => {
   const {
     user,
-    isLoading,
     updateUserProfile,
     updateArtisanProfile,
     updateUserPassword,
@@ -64,7 +63,7 @@ const Profile = () => {
       id: "",
       firstName: "",
       lastName: "",
-      userName: "",
+      username: "",
       email: "",
       phone: "",
       location: "",
@@ -85,6 +84,9 @@ const Profile = () => {
     },
   });
 
+  const isImage = form.watch("userImage") || form.watch("artisanImage");
+  console.log("isImage", isImage);
+
   // Update form when user data changes
   useEffect(() => {
     if (user) {
@@ -92,13 +94,13 @@ const Profile = () => {
         id: user.id || "",
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        userName: user.role === "Artisan" ? user.userName : user.username,
+        username: user.username,
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
         service: user.role === "Artisan" ? user.service : "",
-        userImage: undefined,
-        artisanImage: undefined,
+        userImage: user.role === "User" ? user.userImage : undefined,
+        artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
         active: user.role === "User" ? !!user.userImage : !!user.artisanImage,
       });
 
@@ -144,12 +146,7 @@ const Profile = () => {
     [form, user?.role]
   );
 
-  const onSubmit = async (
-    data: ProfileFormData,
-    e?: React.BaseSyntheticEvent
-  ) => {
-    e?.preventDefault();
-
+  const onSubmit = async (data: ProfileFormData) => {
     console.log("Profile update:", data);
 
     if (data.active && !selectedFile && !imagePreview) {
@@ -177,12 +174,7 @@ const Profile = () => {
     }
   };
 
-  const onPasswordSubmit = async (
-    data: PasswordFormData,
-    e?: React.BaseSyntheticEvent
-  ) => {
-    e?.preventDefault();
-
+  const onPasswordSubmit = async (data: PasswordFormData) => {
     console.log("Password update:", data);
 
     try {
@@ -274,10 +266,9 @@ const Profile = () => {
 
             <Form {...form}>
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit((data) => onSubmit(data, e))(e);
-                }}
+                onSubmit={form.handleSubmit((data) => onSubmit(data), (errors) => {
+                  console.log("errors", errors);
+                })}
                 className="space-y-6"
               >
                 <div className="grid grid-cols-2 gap-6">
@@ -311,7 +302,7 @@ const Profile = () => {
 
                   <FormField
                     control={form.control}
-                    name="userName"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Username</FormLabel>
@@ -508,8 +499,8 @@ const Profile = () => {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                         Saving changes...
@@ -534,12 +525,7 @@ const Profile = () => {
 
             <Form {...passwordForm}>
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  passwordForm.handleSubmit((data) =>
-                    onPasswordSubmit(data, e)
-                  )(e);
-                }}
+                onSubmit={passwordForm.handleSubmit((data) => onPasswordSubmit(data))}
                 className="space-y-6 mt-6"
               >
                 <div className="grid grid-cols-2 gap-6">
@@ -586,8 +572,8 @@ const Profile = () => {
                   />
                 </div>
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                    {passwordForm.formState.isSubmitting ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                         Updating password...

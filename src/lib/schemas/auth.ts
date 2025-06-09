@@ -6,26 +6,17 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 const imageSchema = z
-  .any()
-  .optional()
-  .refine(
-    (file) =>
-      file?.length == 1
-        ? ACCEPTED_IMAGE_TYPES.includes(file?.[0]?.type)
-          ? true
-          : false
-        : true,
-    "Invalid file. choose either JPEG or PNG image"
-  )
-  .refine(
-    (file) =>
-      file?.length == 1
-        ? file?.[0]?.size <= MAX_FILE_SIZE
-          ? true
-          : false
-        : true,
-    "Max file size allowed is 2MB."
-  );
+  .union([
+    z.instanceof(File).refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+      "Invalid file. Choose either JPEG, PNG, or WEBP image."
+    ).refine(
+      (file) => file.size <= MAX_FILE_SIZE,
+      "Max file size allowed is 2MB."
+    ),
+    z.string().url("Must be a valid image URL"),
+  ])
+  .optional();
 
 export const clientRegistrationSchema = z
   .object({
@@ -85,7 +76,7 @@ export const profileSchema = z.object({
     .min(2, "Last name must be at least 2 characters")
     .optional(),
   email: z.string().email("Invalid email address"),
-  userName: z.string().min(3, "Username must be at least 3 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   phone: z.string().refine(isValidPhoneNumber, "Invalid phone number"),
   location: z.string().min(1, "Please select a location"),
   service: z.string().optional(),

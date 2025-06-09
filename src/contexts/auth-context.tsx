@@ -15,11 +15,13 @@ import type {
   UserSignUpData,
   UserSignUpResponse,
   PasswordUpdateResponse,
+  Review,
 } from "@/lib/types";
 
 type BaseUser = {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   phone: string;
   location: string;
@@ -30,8 +32,6 @@ type BaseUser = {
 export type RegularUser = BaseUser & {
   role: "User";
   userImage: string;
-  password?: string;
-  username: string;
 };
 
 export type Artisan = BaseUser & {
@@ -39,7 +39,8 @@ export type Artisan = BaseUser & {
   service: string;
   artisanImage: string;
   booked: boolean;
-  userName: string;
+  reviews: Review[];
+  rating: number;
 };
 
 type User = RegularUser | Artisan;
@@ -126,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return hasRequiredFields && isValidRole && 
              typeof userObj.service === 'string' &&
              typeof userObj.artisanImage === 'string' &&
-             typeof userObj.userName === 'string' &&
+             typeof userObj.username === 'string' &&
              typeof userObj.booked === 'boolean';
     }
     
@@ -169,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
-      const userWithRole = { ...userData, role: "Artisan" } as Artisan;
+      const userWithRole = { ...userData, role: "Artisan" } as unknown as Artisan;
       updateLocalUserData(userWithRole);
       setToken(token);
 
@@ -325,7 +326,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updateData: UserUpdateProfileData = {
         firstName: data.firstName?.trim() || "",
         lastName: data.lastName?.trim() || "",
-        username: data.userName?.trim() || "",
+        username: data.username?.trim() || "",
         email: data.email?.trim() || "",
         phone: data.phone?.trim() || "",
         location: data.location?.trim() || "",
@@ -361,7 +362,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updateData: ArtisanUpdateProfileData = {
         firstName: data.firstName?.trim() || "",
         lastName: data.lastName?.trim() || "",
-        userName: data.userName?.trim() || "",
+        username: data.username?.trim() || "",
         email: data.email?.trim() || "",
         phone: data.phone?.trim() || "",
         location: data.location?.trim() || "",
@@ -370,9 +371,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         active: data.active,
       };
 
+      console.log("update artisan profile data", updateData);
+
       const response = await authApi.updateArtisanProfile(user.id, updateData);
       toast.success(response.message || "Profile updated successfully");
-      
       await refreshUserData();
     } catch (error) {
       console.error("Update profile failed:", error);

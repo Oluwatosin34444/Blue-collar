@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-interface BookingOrder {
+export interface BookingOrder {
   booked_by: string;
   artisanId: string;
   service_type: string;
