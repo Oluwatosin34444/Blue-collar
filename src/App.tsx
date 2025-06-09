@@ -12,6 +12,7 @@ import {
   Dashboard,
   Bookings,
   Profile,
+  MyBookings,
 } from "./views/index";
 import { MyAppNav } from "./components/navbar";
 import ArtisanDetails from "./views/artisans/[id]";
@@ -59,14 +60,15 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="bookings" element={<Bookings />} />
+            <Route path="my-bookings" element={<MyBookings />} />
             <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
         {!isDashboardRoute && <Footer />}
         {!isDashboardRoute && (
           <FloatingWhatsApp
-            phoneNumber="2348********"
-            message="Hello, I'd like to inquire about your services"
+            phoneNumber="2348148944147"
+            message="Hello, I'd like to inquire about your blue collar platform"
           />
         )}
         <TailwindIndicator />

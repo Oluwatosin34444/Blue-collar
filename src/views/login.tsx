@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useAuth } from "@/contexts/use-auth";
 import {
   Form,
@@ -15,14 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
+import { loginSchema, type LoginFormData } from "@/lib/schemas/auth";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  rememberMe: z.boolean(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const { artisanLogin, userLogin, isLoading } = useAuth();

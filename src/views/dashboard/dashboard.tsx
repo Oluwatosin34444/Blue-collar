@@ -1,5 +1,4 @@
 import { useAuth } from "@/contexts/use-auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const Dashboard = () => {
   const { user } = useAuth();
 
@@ -14,14 +13,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">You have 10 bookings</p>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );

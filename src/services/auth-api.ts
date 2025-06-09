@@ -1,3 +1,12 @@
+import type {
+  ArtisanProfileResponse,
+  ArtisanSignUpData,
+  ArtisanSignUpResponse,
+  UserProfileResponse,
+  UserSignUpData,
+  UserSignUpResponse,
+  // UserUpdateProfileData,
+} from "@/lib/types";
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -35,57 +44,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export interface ArtisanSignUpData {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone: string;
-  service: string;
-  location: string;
-  artisanImage?: File | null;
-  password: string;
-}
-
-export interface UserSignUpData {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-  phone: string;
-  location: string;
-  userImage?: File | null;
-}
-
-export interface ArtisanSignUpResponse {
-  message: string;
-  userName: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  service: string;
-  location: string;
-  artisanImage: string;
-  booked: boolean;
-  id: string;
-  success: boolean;
-}
-
-export interface UserSignUpResponse {
-  message: string;
-  username: string;
-  email: string;
-  role: string;
-  phone: string;
-  location: string;
-  id: string;
-  name: string;
-  userImage: string;
-  success: boolean;
-}
-
 export const authApi = {
   artisanSignUp: async (
     data: ArtisanSignUpData
@@ -108,11 +66,17 @@ export const authApi = {
     return response.data;
   },
 
-  artisanLogin: async (email: string, password: string) => {
-    const response = await api.post("/artisan-auth/login", {
-      email,
-      password,
-    });
+  artisanLogin: async (
+    email: string,
+    password: string
+  ): Promise<ArtisanProfileResponse> => {
+    const response = await api.post<ArtisanProfileResponse>(
+      "/artisan-auth/login",
+      {
+        email,
+        password,
+      }
+    );
     return response.data;
   },
 
@@ -134,8 +98,14 @@ export const authApi = {
     return response.data;
   },
 
-  userLogin: async (email: string, password: string) => {
-    const response = await api.post("/auth/login", { email, password });
+  userLogin: async (
+    email: string,
+    password: string
+  ): Promise<UserProfileResponse> => {
+    const response = await api.post<UserProfileResponse>("/auth/login", {
+      email,
+      password,
+    });
     return response.data;
   },
 
@@ -154,8 +124,12 @@ export const authApi = {
     return response.data;
   },
 
-  updateUserProfile: async (data: UserSignUpData) => {
-    const response = await api.put("/users/update-profile", data);
+  updateUserProfile: async (data: FormData) => {
+    const response = await api.post("/users/update-profile", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 
@@ -163,12 +137,13 @@ export const authApi = {
     oldPassword: string;
     newPassword: string;
   }) => {
-    const response = await api.put("/users/update-password", data);
+    const response = await api.post("/users/update-password", data);
     return response.data;
   },
 
   getAllArtisans: async (page: number) => {
     const response = await api.get(`/artisan?page=${page}`);
+    console.log("all artisans response", response.data);
     return response.data;
   },
 
@@ -182,8 +157,12 @@ export const authApi = {
     return response.data;
   },
 
-  updateArtisanProfile: async (id: string, data: ArtisanSignUpData) => {
-    const response = await api.patch(`/artisan/update/${id}`, data);
+  updateArtisanProfile: async (id: string, data: FormData) => {
+    const response = await api.patch(`/artisan/update/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 
@@ -196,7 +175,7 @@ export const authApi = {
     oldPassword: string;
     newPassword: string;
   }) => {
-    const response = await api.put("/artisans/update-password", data);
+    const response = await api.post("/artisan/update-password", data);
     return response.data;
   },
 };

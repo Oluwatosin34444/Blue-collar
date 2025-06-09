@@ -17,6 +17,9 @@ import {
 import { locations, services } from "@/lib/constant";
 import Container from "@/components/container";
 import { authApi } from "@/services/auth-api";
+import { Card, CardContent } from "@/components/ui/card";
+import type { Review } from "@/lib/types";
+import { Rating, RatingButton } from "@/components/ui/rating";
 
 interface Artisan {
   _id: string;
@@ -32,6 +35,7 @@ interface Artisan {
   phone: string;
   rating: number;
   dateAdded: string;
+  review: Review[];
 }
 
 interface ArtisanResponse {
@@ -82,8 +86,7 @@ const Artisans = () => {
       setLoading(true);
       try {
         const data = (await authApi.getAllArtisans(page)) as ArtisanResponse;
-        setArtisans(data.artisanItems);
-        // setTotalPages(data.totalPages)
+        setArtisans(data.artisanItems.filter((artisan) => artisan.active));
       } catch (error) {
         console.error("Error fetching artisans:", error);
         setArtisans([]);
@@ -333,10 +336,10 @@ const Artisans = () => {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedArtisans?.map((artisan) => (
-            <div
+            <Card
               key={artisan._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition"
               onClick={() => navigate(`/artisans/${artisan._id}`)}
+              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-none pt-0"
             >
               <img
                 src={
@@ -344,21 +347,24 @@ const Artisans = () => {
                   `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
                 }
                 alt={`${artisan.firstName} ${artisan.lastName}`}
-                className="w-full h-48 object-cover"
+                className="w-full h-54 object-cover rounded-t-lg"
               />
-              <div className="p-4">
-                <h3 className="text-xl font-semibold mb-2">{`${artisan.firstName} ${artisan.lastName}`}</h3>
-                <p className="text-gray-600 mb-2">{artisan.service}</p>
-                <div className="flex items-center mb-2">
-                  <span className="text-yellow-400">★</span>
-                  <span className="ml-1">{artisan.rating}</span>
+              <CardContent className="space-y-1">
+                <h3 className="text-xl font-semibold">{`${artisan.firstName} ${artisan.lastName}`}</h3>
+                <p className="text-gray-600">{artisan.service}</p>
+                <div className="flex items-center text-sm">
+                  <Rating defaultValue={artisan.rating} readOnly>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <RatingButton key={index} />
+                    ))}
+                  </Rating>
                 </div>
-                <p className="text-gray-600 mb-2">{artisan.location}</p>
+                <p className="text-gray-600">{artisan.location}</p>
                 <p className="text-gray-500 text-sm">
                   Contact: {artisan.phone}
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

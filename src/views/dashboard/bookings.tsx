@@ -1,101 +1,119 @@
-import { useAuth } from '@/contexts/use-auth';
+"use client";
+
+import { useState, useEffect } from "react";
+import { DataTable } from "@/components/datatable/data-table";
+import { columns } from "@/components/bookings/columns";
+import { CloseOrderModal } from "@/components/bookings/close-order-modal";
+import { ReviewModal } from "@/components/bookings/review-modal";
+import { bookingApi } from "@/services/booking-api";
+import type { BookingOrder } from "@/lib/types";
+
+interface BookingOrderResponse {
+  orders: BookingOrder[];
+  totalOrders: number;
+  currentPage: number;
+  totalPages: number;
+  success: boolean;
+}
 
 const Bookings = () => {
-  const { user } = useAuth();
+  const [bookingOrders, setBookingOrders] = useState<BookingOrderResponse>({
+    orders: [],
+    totalOrders: 0,
+    currentPage: 1,
+    totalPages: 1,
+    success: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<BookingOrder | null>(null);
+  const [closeModalOpen, setCloseModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
-  // Mock bookings data
-  const bookings = [
-    {
-      id: 1,
-      service: 'Electrical',
-      artisan: 'John Smith',
-      date: '2024-03-20',
-      status: 'pending',
-      amount: 5000,
-    },
-    {
-      id: 2,
-      service: 'Plumbing',
-      artisan: 'Sarah Johnson',
-      date: '2024-03-25',
-      status: 'completed',
-      amount: 3500,
-    },
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      setLoading(true);
+      try {
+        const data = (await bookingApi.getBookingOrders(1)) as BookingOrderResponse;
+        setBookingOrders(data);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+        setBookingOrders({
+          orders: [],
+          totalOrders: 0,
+          currentPage: 1,
+          totalPages: 1,
+          success: false
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
+
+  const handleCloseOrder = (order: BookingOrder) => {
+    setSelectedOrder(order);
+    setCloseModalOpen(true);
+  };
+
+  const handleSubmitReview = (order: BookingOrder) => {
+    setSelectedOrder(order);
+    setReviewModalOpen(true);
+  };
+
+  const handleOrderClosed = (orderId: string) => {
+    setBookingOrders((prev) => ({
+      ...prev,
+      orders: prev.orders.map((order) =>
+        order._id === orderId ? { ...order, state: 2 } : order
+      )
+    }));
+    setCloseModalOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleReviewSubmitted = () => {
+    setReviewModalOpen(false);
+    setSelectedOrder(null);
+  };
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {user?.role === 'Artisan'
-            ? 'View and manage your service bookings'
-            : 'Track your service requests'}
+        <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          View and manage your service bookings
         </p>
       </div>
 
-      <div className="bg-white shadow rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Service
-                </th>
-                {user?.role === 'User' && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Artisan
-                  </th>
-                )}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
-                <tr key={booking.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {booking.service}
-                    </div>
-                  </td>
-                  {user?.role === 'User' && (
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{booking.artisan}</div>
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{booking.date}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        booking.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ₦{booking.amount.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-white shadow-sm rounded-lg border">
+        <div className="p-6">
+          <DataTable
+            columns={columns({
+              onCloseOrder: handleCloseOrder,
+              onSubmitReview: handleSubmitReview,
+            })}
+            data={bookingOrders.orders}
+            isLoading={loading}
+          />
         </div>
       </div>
+
+      <CloseOrderModal
+        open={closeModalOpen}
+        onOpenChange={setCloseModalOpen}
+        order={selectedOrder}
+        onOrderClosed={handleOrderClosed}
+      />
+
+      <ReviewModal
+        open={reviewModalOpen}
+        onOpenChange={setReviewModalOpen}
+        order={selectedOrder}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
     </div>
   );
 };
 
-export default Bookings; 
+export default Bookings;

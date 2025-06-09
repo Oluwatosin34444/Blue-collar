@@ -18,15 +18,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-interface BookingOrder {
+export interface BookingOrder {
   booked_by: string;
   artisanId: string;
   service_type: string;
 }
 
 export const bookingApi = {
-  getBookingOrders: async () => {
-    const response = await api.get("/booking-orders");
+  getBookingOrders: async (page: number) => {
+    const response = await api.get(`/booking-orders?page=${page}`);
+    console.log(response.data);
     return response.data;
   },
 

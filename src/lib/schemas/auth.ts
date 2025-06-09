@@ -3,11 +3,20 @@ import { z } from "zod";
 import { isValidPhoneNumber } from "react-phone-number-input";
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
-const imageSchema = z.any().optional()
-.refine(file => file?.length == 1 ? ACCEPTED_IMAGE_TYPES.includes(file?.[0]?.type) ? true : false : true, 'Invalid file. choose either JPEG or PNG image')
-.refine(file => file?.length == 1 ? file?.[0]?.size <= MAX_FILE_SIZE ? true : false : true, 'Max file size allowed is 8MB.')
+const imageSchema = z
+  .union([
+    z.instanceof(File).refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+      "Invalid file. Choose either JPEG, PNG, or WEBP image."
+    ).refine(
+      (file) => file.size <= MAX_FILE_SIZE,
+      "Max file size allowed is 2MB."
+    ),
+    z.string().url("Must be a valid image URL"),
+  ])
+  .optional();
 
 export const clientRegistrationSchema = z
   .object({
@@ -50,9 +59,49 @@ export const artisanRegistrationSchema = z
     path: ["confirmPassword"],
   });
 
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  rememberMe: z.boolean(),
+});
+
+export const profileSchema = z.object({
+  id: z.string(),
+  firstName: z
+    .string()
+    .min(2, "First name must be at least 2 characters")
+    .optional(),
+  lastName: z
+    .string()
+    .min(2, "Last name must be at least 2 characters")
+    .optional(),
+  email: z.string().email("Invalid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  phone: z.string().refine(isValidPhoneNumber, "Invalid phone number"),
+  location: z.string().min(1, "Please select a location"),
+  service: z.string().optional(),
+  userImage: imageSchema,
+  artisanImage: imageSchema,
+  active: z.boolean(),
+});
+
+export const passwordSchema = z
+  .object({
+    oldPassword: z.string().min(8, "Password must be at least 8 characters"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords do not match",
+    path: ["confirmNewPassword"],
+  });
+
 export type ClientRegistrationFormData = z.infer<
   typeof clientRegistrationSchema
 >;
 export type ArtisanRegistrationFormData = z.infer<
   typeof artisanRegistrationSchema
 >;
+export type ProfileFormData = z.infer<typeof profileSchema>;
+export type PasswordFormData = z.infer<typeof passwordSchema>;
+export type LoginFormData = z.infer<typeof loginSchema>;
