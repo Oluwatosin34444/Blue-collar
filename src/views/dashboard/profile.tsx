@@ -43,6 +43,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { locations } from "@/lib/constant";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
+import Container from "@/components/container";
 
 const Profile = () => {
   const {
@@ -77,13 +78,14 @@ const Profile = () => {
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
+      username: user?.username || "",
       oldPassword: "",
       newPassword: "",
       confirmNewPassword: "",
     },
+    mode: "onChange",
   });
 
-  // Update form when user data changes
   useEffect(() => {
     if (user) {
       form.reset({
@@ -126,7 +128,6 @@ const Profile = () => {
         const previewUrl = URL.createObjectURL(file);
         setImagePreview(previewUrl);
 
-        // Set the file in the form
         if (user?.role === "Artisan") {
           form.setValue("artisanImage", file, { shouldValidate: true });
         } else {
@@ -142,7 +143,6 @@ const Profile = () => {
   );
 
   const onSubmit = async (data: ProfileFormData) => {
-
     if (data.active && !selectedFile && !imagePreview) {
       toast.info("Upload your profile image to activate your account");
       return;
@@ -173,8 +173,6 @@ const Profile = () => {
   };
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
-    console.log("Password update:", data);
-
     try {
       if (user?.role === "User") {
         await updateUserPassword(data);
@@ -182,14 +180,12 @@ const Profile = () => {
         await updateArtisanPassword(data);
       }
 
-      // Reset password form after successful update
       passwordForm.reset();
     } catch (error) {
       console.error("Password update failed:", error);
     }
   };
 
-  // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
       if (imagePreview && imagePreview.startsWith("blob:")) {
@@ -199,7 +195,13 @@ const Profile = () => {
   }, [imagePreview]);
 
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <Container>
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+        </div>
+      </Container>
+    );
   }
 
   return (
@@ -264,9 +266,7 @@ const Profile = () => {
 
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit((data) => onSubmit(data), (errors) => {
-                  console.log("errors", errors);
-                })}
+                onSubmit={form.handleSubmit((data) => onSubmit(data))}
                 className="space-y-6"
               >
                 <div className="grid grid-cols-2 gap-6">
@@ -522,7 +522,9 @@ const Profile = () => {
 
             <Form {...passwordForm}>
               <form
-                onSubmit={passwordForm.handleSubmit((data) => onPasswordSubmit(data))}
+                onSubmit={passwordForm.handleSubmit((data) =>
+                  onPasswordSubmit(data)
+                )}
                 className="space-y-6 mt-6"
               >
                 <div className="grid grid-cols-2 gap-6">
@@ -569,7 +571,10 @@ const Profile = () => {
                   />
                 </div>
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={passwordForm.formState.isSubmitting}
+                  >
                     {passwordForm.formState.isSubmitting ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>

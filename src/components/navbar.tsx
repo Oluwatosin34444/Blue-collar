@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -277,17 +278,19 @@ export function MyAppNav() {
                     align="end"
                     className="border-input font-medium"
                   >
+                    <DropdownMenuLabel className="flex items-center gap-1">
+                      <span className="text-sm text-gray-500 font-medium">
+                        {user.firstName} {user.lastName}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        ({user.role === "Artisan" ? "Artisan" : "User"})
+                      </span>
+                    </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() =>
-                        navigate(
-                          user.role === "Artisan"
-                            ? "/dashboard/bookings"
-                            : "/dashboard/my-bookings"
-                        )
-                      }
+                      onClick={() => navigate("/dashboard/bookings")}
                     >
                       {user.role === "Artisan" ? "Bookings" : "My Bookings"}
                     </DropdownMenuItem>

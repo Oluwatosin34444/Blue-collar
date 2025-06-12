@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/use-auth";
@@ -13,13 +13,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loginSchema, type LoginFormData } from "@/lib/schemas/auth";
-
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const { artisanLogin, userLogin, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const userRole = searchParams.get("role");
   const [role, setRole] = useState<"Artisan" | "User">("User");
+  const [showPassword, setShowPassword] = useState(false);
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -28,6 +31,12 @@ const Login = () => {
       rememberMe: false,
     },
   });
+
+  useEffect(() => {
+    if (userRole) {
+      setRole(userRole as "Artisan" | "User");
+    }
+  }, [userRole]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -46,9 +55,7 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-bold">Welcome Back</h2>
-          <p className="mt-2 text-gray-600">
-            Sign in to your {role} account 
-          </p>
+          <p className="mt-2 text-gray-600">Sign in to your {role} account</p>
         </div>
 
         <Form {...form}>
@@ -78,7 +85,23 @@ const Login = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        {...field} 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

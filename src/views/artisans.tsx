@@ -46,7 +46,7 @@ interface ArtisanResponse {
   success: boolean;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 9;
 
 const Artisans = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -360,9 +360,6 @@ const Artisans = () => {
                   </Rating>
                 </div>
                 <p className="text-gray-600">{artisan.location}</p>
-                <p className="text-gray-500 text-sm">
-                  Contact: {artisan.phone}
-                </p>
               </CardContent>
             </Card>
           ))}

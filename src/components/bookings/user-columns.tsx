@@ -2,39 +2,15 @@
 
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Calendar, User, Wrench, CheckCircle, Star } from "lucide-react"
 import type { BookingOrder } from "@/lib/types"
+import { DataTableColumnHeader } from "../datatable/data-table-column-header"
+import { getStatusBadge } from "./utils"
 
 interface ColumnsProps {
   onCloseOrder: (order: BookingOrder) => void
   onSubmitReview: (order: BookingOrder) => void
-}
-
-const getStatusBadge = (state: number) => {
-  switch (state) {
-    case 0:
-      return (
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-          Pending
-        </Badge>
-      )
-    case 1:
-      return (
-        <Badge variant="default" className="bg-blue-100 text-blue-800">
-          In Progress
-        </Badge>
-      )
-    case 2:
-      return (
-        <Badge variant="default" className="bg-green-100 text-green-800">
-          Completed
-        </Badge>
-      )
-    default:
-      return <Badge variant="outline">Unknown</Badge>
-  }
 }
 
 const formatDate = (dateString: string) => {
@@ -51,31 +27,31 @@ const capitalizeServiceType = (service: string) => {
   return service.charAt(0).toUpperCase() + service.slice(1)
 }
 
-export const columns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): ColumnDef<BookingOrder>[] => [
+export const userColumns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): ColumnDef<BookingOrder>[] => [
   {
     accessorKey: "_id",
-    header: "Order ID",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Order ID' />,
     cell: ({ row }) => {
       const id = row.getValue("_id") as string
       return <div className="font-mono text-sm">#{id.slice(-8)}</div>
     },
   },
   {
-    accessorKey: "booked_by",
-    header: "Customer",
+    accessorKey: "artisanUsername",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Artisan' />,
     cell: ({ row }) => {
-      const customer = row.getValue("booked_by") as string
+      const artisan = row.getValue("artisanUsername") as string
       return (
         <div className="flex items-center space-x-2">
           <User className="h-4 w-4 text-gray-400" />
-          <span className="font-medium">{customer}</span>
+          <span className="font-medium">{artisan}</span>
         </div>
       )
     },
   },
   {
     accessorKey: "service_type",
-    header: "Service",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Service' />,
     cell: ({ row }) => {
       const service = row.getValue("service_type") as string
       return (
@@ -88,7 +64,7 @@ export const columns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): ColumnD
   },
   {
     accessorKey: "booking_date",
-    header: "Booking Date",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Booking Date' />,
     cell: ({ row }) => {
       const date = row.getValue("booking_date") as string
       return (
@@ -101,7 +77,7 @@ export const columns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): ColumnD
   },
   {
     accessorKey: "state",
-    header: "Status",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
     cell: ({ row }) => {
       const state = row.getValue("state") as number
       return getStatusBadge(state)
@@ -109,11 +85,11 @@ export const columns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): ColumnD
   },
   {
     id: "actions",
-    header: "Actions",
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
     cell: ({ row }) => {
       const order = row.original
-      const canClose = order.state === 1 // Can only close if in progress
-      const canReview = order.state === 2 // Can only review if completed
+      const canClose = order.state === 0
+      const canReview = order.state === 1
 
       return (
         <DropdownMenu>

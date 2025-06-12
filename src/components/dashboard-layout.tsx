@@ -2,7 +2,14 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/use-auth";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Calendar, User, LogOut, Menu, LayoutDashboard } from "lucide-react";
+import {
+  Calendar,
+  User,
+  LogOut,
+  Menu,
+  LayoutDashboard,
+  UserRoundCog,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -21,16 +28,25 @@ export function DashboardLayout() {
       name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
+      roles: ["User", "Artisan"],
     },
     {
       name: "Bookings",
       href: "/dashboard/bookings",
       icon: Calendar,
+      roles: ["User", "Artisan"],
+    },
+    {
+      name: "KYC",
+      href: "/dashboard/kyc",
+      icon: User,
+      roles: ["Artisan"],
     },
     {
       name: "Profile Settings",
       href: "/dashboard/profile",
-      icon: User,
+      icon: UserRoundCog,
+      roles: ["User", "Artisan"],
     },
   ];
 
@@ -46,21 +62,23 @@ export function DashboardLayout() {
         <nav className="space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setSheetOpen(false)}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  isActive
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            );
+            if (item.roles.includes(user?.role || "User")) {
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setSheetOpen(false)}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                    isActive
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </Link>
+              );
+            }
           })}
         </nav>
 
@@ -78,11 +96,17 @@ export function DashboardLayout() {
 
       <div className="flex items-center space-x-3 mb-6 p-4">
         <Avatar>
-          <AvatarImage src={user?.role === "Artisan" ? user?.artisanImage : user?.userImage} />
+          <AvatarImage
+            src={
+              user?.role === "Artisan" ? user?.artisanImage : user?.userImage
+            }
+          />
           <AvatarFallback>{user?.firstName?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-medium">{user?.firstName} {user?.lastName}</p>
+          <p className="font-medium">
+            {user?.firstName} {user?.lastName}
+          </p>
           <p className="text-sm text-gray-500">{user?.role}</p>
         </div>
       </div>
@@ -90,7 +114,7 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 h-screen">
       <div className="flex h-screen">
         <div className="hidden lg:flex w-64 bg-white border-r flex-col justify-between">
           <SidebarContent />
@@ -110,7 +134,7 @@ export function DashboardLayout() {
           </Sheet>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto h-screen">
           <main className="p-4 lg:p-8">
             <Outlet />
           </main>

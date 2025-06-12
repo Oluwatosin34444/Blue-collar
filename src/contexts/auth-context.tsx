@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.artisanSignUp(data);
       toast.success(response.message);
-      navigate("/login");
+      navigate(`/login?role=Artisan`);
       return response;
     } catch (error) {
       console.error("Artisan signup failed:", error);
@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.userSignUp(data);
       toast.success(response.message);
-      navigate("/login");
+      navigate(`/login?role=User`);
       return response;
     } catch (error) {
       console.error("User signup failed:", error);
@@ -244,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateLocalUserData(userWithRole);
       setToken(token);
 
-      navigate("/dashboard");
+      navigate("/");
       return response;
     } catch (error) {
       console.error("User login failed:", error);
@@ -396,7 +396,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserPassword = async (data: PasswordFormData) => {
-    setIsLoading(true);
     const updatePasswordData = {
       oldPassword: data.oldPassword,
       newPassword: data.newPassword,
@@ -414,14 +413,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.error("An error occurred");
       }
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const updateArtisanPassword = async (data: PasswordFormData) => {
-    setIsLoading(true);
     const updatePasswordData = {
+      username: data.username,
       oldPassword: data.oldPassword,
       newPassword: data.newPassword,
     };
@@ -438,8 +435,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.error("An error occurred");
       }
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

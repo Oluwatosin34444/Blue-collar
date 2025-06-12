@@ -1,12 +1,12 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/datatable/data-table";
-import { columns } from "@/components/bookings/columns";
+import { userColumns } from "@/components/bookings/user-columns";
+import { artisanColumns } from "@/components/bookings/artisan-columns";
 import { CloseOrderModal } from "@/components/bookings/close-order-modal";
 import { ReviewModal } from "@/components/bookings/review-modal";
 import { bookingApi } from "@/services/booking-api";
 import type { BookingOrder } from "@/lib/types";
+import { useAuth } from "@/contexts/use-auth";
 
 interface BookingOrderResponse {
   orders: BookingOrder[];
@@ -17,6 +17,7 @@ interface BookingOrderResponse {
 }
 
 const Bookings = () => {
+  const { user } = useAuth();
   const [bookingOrders, setBookingOrders] = useState<BookingOrderResponse>({
     orders: [],
     totalOrders: 0,
@@ -33,7 +34,9 @@ const Bookings = () => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
-        const data = (await bookingApi.getBookingOrders(1)) as BookingOrderResponse;
+        const data = (await bookingApi.getBookingOrders(
+          1
+        )) as BookingOrderResponse;
         setBookingOrders(data);
       } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -42,7 +45,7 @@ const Bookings = () => {
           totalOrders: 0,
           currentPage: 1,
           totalPages: 1,
-          success: false
+          success: false,
         });
       } finally {
         setLoading(false);
@@ -65,8 +68,8 @@ const Bookings = () => {
     setBookingOrders((prev) => ({
       ...prev,
       orders: prev.orders.map((order) =>
-        order._id === orderId ? { ...order, state: 2 } : order
-      )
+        order._id === orderId ? { ...order, state: 1 } : order
+      ),
     }));
     setCloseModalOpen(false);
     setSelectedOrder(null);
@@ -82,36 +85,43 @@ const Bookings = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
         <p className="mt-2 text-sm text-gray-600">
-          View and manage your service bookings
+          View and manage your{" "}
+          {user?.role === "Artisan" ? "service requests" : "bookings"}
         </p>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg border">
-        <div className="p-6">
+      {user?.role === "Artisan" ? (
+        <DataTable
+          columns={artisanColumns()}
+          data={bookingOrders.orders}
+          isLoading={loading}
+        />
+      ) : (
+        <>
           <DataTable
-            columns={columns({
+            columns={userColumns({
               onCloseOrder: handleCloseOrder,
               onSubmitReview: handleSubmitReview,
             })}
             data={bookingOrders.orders}
             isLoading={loading}
           />
-        </div>
-      </div>
 
-      <CloseOrderModal
-        open={closeModalOpen}
-        onOpenChange={setCloseModalOpen}
-        order={selectedOrder}
-        onOrderClosed={handleOrderClosed}
-      />
+          <CloseOrderModal
+            open={closeModalOpen}
+            onOpenChange={setCloseModalOpen}
+            order={selectedOrder}
+            onOrderClosed={handleOrderClosed}
+          />
 
-      <ReviewModal
-        open={reviewModalOpen}
-        onOpenChange={setReviewModalOpen}
-        order={selectedOrder}
-        onReviewSubmitted={handleReviewSubmitted}
-      />
+          <ReviewModal
+            open={reviewModalOpen}
+            onOpenChange={setReviewModalOpen}
+            order={selectedOrder}
+            onReviewSubmitted={handleReviewSubmitted}
+          />
+        </>
+      )}
     </div>
   );
 };

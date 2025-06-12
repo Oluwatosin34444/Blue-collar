@@ -1,6 +1,6 @@
-
-import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -8,74 +8,87 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Star, User } from "lucide-react"
-import { Rating, RatingButton } from "@/components/ui/rating"
-import type { BookingOrder } from "@/lib/types"
-
-interface ReviewFormData {
-  username: string
-  rating: number
-  comment: string
-}
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Star, User } from "lucide-react";
+import { Rating, RatingButton } from "@/components/ui/rating";
+import type { BookingOrder } from "@/lib/types";
+import { reviewApi } from "@/services/review-api";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
+import { reviewFormSchema, type ReviewFormData } from "@/lib/schemas/review";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useAuth } from "@/contexts/use-auth";
 
 interface ReviewModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  order: BookingOrder | null
-  onReviewSubmitted: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  order: BookingOrder | null;
+  onReviewSubmitted: () => void;
 }
 
-export function ReviewModal({ open, onOpenChange, order, onReviewSubmitted }: ReviewModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [rating, setRating] = useState(5)
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ReviewFormData>({
+export function ReviewModal({
+  open,
+  onOpenChange,
+  order,
+  onReviewSubmitted,
+}: ReviewModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const form = useForm<ReviewFormData>({
+    resolver: zodResolver(reviewFormSchema),
     defaultValues: {
-      username: "",
+      username: user?.username || "",
       rating: 5,
       comment: "",
     },
-  })
+    mode: "onChange",
+  });
 
   const onSubmit = async (data: ReviewFormData) => {
-    if (!order) return
+    if (!order) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    const reviewData = {
-      ...data,
-      rating,
-      orderId: order._id,
-      artisanId: order.artisanId,
+    try {
+      const response = await reviewApi.submitReview(
+        order.artisanUsername,
+        data
+      );
+      console.log("Review response:", response);
+      toast.success(response.message);
+      onReviewSubmitted();
+      form.reset();
+      onOpenChange(false);
+    } catch (error: unknown) {
+      console.error("Error submitting review:", error);
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data.message || "Failed to submit review"
+        );
+      } else {
+        toast.error("Failed to submit review");
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("Submitting review:", reviewData)
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    setIsLoading(false)
-    reset()
-    setRating(5)
-    onReviewSubmitted()
-  }
+  };
 
   const handleClose = () => {
-    reset()
-    setRating(5)
-    onOpenChange(false)
-  }
+    form.reset();
+    onOpenChange(false);
+  };
 
-  if (!order) return null
+  if (!order) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,74 +100,106 @@ export function ReviewModal({ open, onOpenChange, order, onReviewSubmitted }: Re
             </div>
             <div>
               <DialogTitle>Submit Review</DialogTitle>
-              <DialogDescription>Share your experience with this service</DialogDescription>
+              <DialogDescription>
+                Share your experience with this artisan
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium">Service Details</span>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <User className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">Service Details</span>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>
+                  <span className="font-medium">Service:</span>{" "}
+                  {order.service_type}
+                </p>
+                <p>
+                  <span className="font-medium">Order:</span> #
+                  {order._id.slice(-8)}
+                </p>
+                <p>
+                  <span className="font-medium">Date:</span>{" "}
+                  {new Date(order.booking_date).toLocaleDateString()}
+                </p>
+              </div>
             </div>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p>
-                <span className="font-medium">Service:</span> {order.service_type}
-              </p>
-              <p>
-                <span className="font-medium">Order:</span> #{order._id.slice(-8)}
-              </p>
-              <p>
-                <span className="font-medium">Date:</span> {new Date(order.booking_date).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="username">Your Name</Label>
-            <input
-              id="username"
-              {...register("username", { required: "Name is required" })}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter your name"
+            <FormField
+              control={form.control}
+              name="rating"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rating</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <Rating
+                        defaultValue={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <RatingButton key={index} />
+                        ))}
+                      </Rating>
+                      <span className="text-sm text-gray-600">
+                        ({field.value}/5)
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.username && <p className="text-sm text-red-600">{errors.username.message}</p>}
-          </div>
 
-          <div className="space-y-2">
-            <Label>Rating</Label>
-            <div className="flex items-center space-x-2">
-              <Rating defaultValue={rating} onValueChange={setRating}>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <RatingButton key={index} />
-                ))}
-              </Rating>
-              <span className="text-sm text-gray-600">({rating}/5)</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="comment">Comment</Label>
-            <Textarea
-              id="comment"
-              {...register("comment", { required: "Comment is required" })}
-              placeholder="Share your experience with this service..."
-              className="min-h-[100px]"
+            <FormField
+              control={form.control}
+              name="comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Comment</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Share your experience with this artisan..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.comment && <p className="text-sm text-red-600">{errors.comment.message}</p>}
-          </div>
 
-          <DialogFooter className="flex space-x-2">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
-              {isLoading ? "Submitting..." : "Submit Review"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="flex space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                    Submitting review...
+                  </div>
+                ) : (
+                  "Submit Review"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
