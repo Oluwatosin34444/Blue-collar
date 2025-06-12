@@ -15,8 +15,6 @@ const ArtisanDetails = () => {
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [loading, setLoading] = useState(false);
 
-  console.log("artisan", artisan);
-
   useEffect(() => {
     const fetchArtisan = async () => {
       setLoading(true);
@@ -112,12 +110,11 @@ const ArtisanDetails = () => {
         </div>
 
         <p className="text-gray-700 mb-2">Location: {artisan.location}</p>
-        <p className="text-gray-700 mb-2">Contact: {artisan.phone}</p>
 
         {user?.role === "User" && (
           <BookingModal
             artisanName={`${artisan.firstName} ${artisan.lastName}`}
-            artisanId={artisan.id}
+            artisanUsername={artisan.username}
             serviceName={artisan.service}
             userName={user?.username || ""}
             artisanBooked={artisan.booked}

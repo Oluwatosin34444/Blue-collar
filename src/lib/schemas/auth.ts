@@ -87,6 +87,7 @@ export const profileSchema = z.object({
 
 export const passwordSchema = z
   .object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
     oldPassword: z.string().min(8, "Password must be at least 8 characters"),
     newPassword: z.string().min(8, "Password must be at least 8 characters"),
     confirmNewPassword: z.string(),

@@ -110,10 +110,11 @@ export type Review = {
 };
 
 export interface BookingOrder {
-  _id: string
-  booked_by: string
-  booking_date: string
-  artisanId: string
-  service_type: string
-  state: number
+  _id: string;
+  booked_by: string;
+  user_location: string;
+  artisanUsername: string;
+  booking_date: string;
+  service_type: string;
+  state: number;
 }

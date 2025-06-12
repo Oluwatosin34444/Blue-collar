@@ -18,16 +18,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export interface BookingOrder {
+export interface CreateBookingOrder {
   booked_by: string;
-  artisanId: string;
+  artisanUsername: string;
   service_type: string;
+  user_location: string;
+}
+
+export interface CloseBookingOrder {
+  state: number;
+  artisanUsername: string;
 }
 
 export const bookingApi = {
   getBookingOrders: async (page: number) => {
     const response = await api.get(`/booking-orders?page=${page}`);
-    console.log(response.data);
     return response.data;
   },
 
@@ -36,13 +41,13 @@ export const bookingApi = {
     return response.data;
   },
 
-  createBookingOrder: async (data: BookingOrder) => {
+  createBookingOrder: async (data: CreateBookingOrder) => {
     const response = await api.post("/booking-orders/create", data);
     return response.data;
   },
 
-  closeBookingOrder: async (id: string) => {
-    const response = await api.patch(`/booking-orders/close/${id}`);
+  closeBookingOrder: async (id: string, data: CloseBookingOrder) => {
+    const response = await api.patch(`/booking-orders/close/${id}`, data);
     return response.data;
   },
 

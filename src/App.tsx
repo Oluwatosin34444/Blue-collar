@@ -12,7 +12,7 @@ import {
   Dashboard,
   Bookings,
   Profile,
-  MyBookings,
+  KYC,
 } from "./views/index";
 import { MyAppNav } from "./components/navbar";
 import ArtisanDetails from "./views/artisans/[id]";
@@ -60,8 +60,8 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="bookings" element={<Bookings />} />
-            <Route path="my-bookings" element={<MyBookings />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="kyc" element={<KYC />} />
           </Route>
         </Routes>
         {!isDashboardRoute && <Footer />}

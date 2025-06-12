@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogFooter,
@@ -21,14 +20,14 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { bookingApi, type BookingOrder } from "@/services/booking-api";
+import { bookingApi, type CreateBookingOrder } from "@/services/booking-api";
 import { toast } from "sonner";
 import { bookingFormSchema, type BookingFormData } from "@/lib/schemas/booking";
 import { DateTimePicker } from "../ui/date-time-picker";
 
 interface BookingModalProps {
   artisanName: string;
-  artisanId: string;
+  artisanUsername: string;
   serviceName: string;
   userName: string;
   artisanBooked: boolean;
@@ -37,21 +36,26 @@ interface BookingModalProps {
 
 export function BookingModal({
   artisanName,
-  artisanId,
+  artisanUsername,
   serviceName,
   userName,
   artisanBooked,
   onBookingSuccess,
 }: BookingModalProps) {
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
-      date: new Date(),
+      date: (() => {
+        const date = new Date();
+        date.setHours(date.getHours() + 2);
+        return date;
+      })(),
       additionalInfo: "",
       address: "",
-      artisanId,
+      artisanUsername,
       serviceName,
       userName,
     },
@@ -69,23 +73,27 @@ export function BookingModal({
       return;
     }
 
-    const bookingOrder: BookingOrder = {
+    const bookingOrder: CreateBookingOrder = {
       booked_by: data.userName,
-      artisanId: data.artisanId,
+      artisanUsername: data.artisanUsername,
       service_type: data.serviceName,
+      user_location: data.address,
     };
 
-    console.log("bookingOrder", bookingOrder);
-
     try {
+      setIsLoading(true);
       const response = await bookingApi.createBookingOrder(bookingOrder);
       toast.success(response.message);
       setOpen(false);
       form.reset();
       onBookingSuccess();
+      setIsLoading(false);
     } catch (error) {
       console.error("Error creating booking order:", error);
       toast.error("Error creating booking order");
+      setIsLoading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,7 +101,7 @@ export function BookingModal({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button className="w-fit" disabled={artisanBooked} size="lg">
-          Book Artisan
+          {artisanBooked ? `Artisan Unavailable` : `Book ${artisanName}`}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[425px]">
@@ -161,11 +169,11 @@ export function BookingModal({
             />
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
+              <Button
                 type="submit"
-                disabled={form.formState.isSubmitting}
+                disabled={isLoading}
               >
-                {form.formState.isSubmitting ? (
+                {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                     Submitting booking...
@@ -173,7 +181,7 @@ export function BookingModal({
                 ) : (
                   "Submit Booking"
                 )}
-              </AlertDialogAction>
+              </Button>
             </AlertDialogFooter>
           </form>
         </Form>

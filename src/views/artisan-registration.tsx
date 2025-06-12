@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { servicesApi } from "@/services/services-api";
+// import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
 // import { LocationSelect } from "@/components/location-select";
 
 const ArtisanRegister = () => {
@@ -83,7 +83,6 @@ const ArtisanRegister = () => {
 
     try {
       await artisanSignUp(signUpData);
-      await servicesApi.addService(data.service);
     } catch (error) {
       console.error("Artisan registration failed:", error);
     }
@@ -272,6 +271,8 @@ const ArtisanRegister = () => {
                   </FormItem>
                 )}
               /> */}
+
+              {/* <AutocompleteComponent /> */}
 
               <FormField
                 control={form.control}
