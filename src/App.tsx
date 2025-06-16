@@ -13,6 +13,7 @@ import {
   Bookings,
   Profile,
   KYC,
+  AdminRegistration,
 } from "./views/index";
 import { MyAppNav } from "./components/navbar";
 import ArtisanDetails from "./views/artisans/[id]";
@@ -44,6 +45,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/client-registration" element={<ClientRegistration />} />
+          <Route path="/admin-registration" element={<AdminRegistration />} />
           <Route
             path="/artisan-registration"
             element={<ArtisanRegistration />}

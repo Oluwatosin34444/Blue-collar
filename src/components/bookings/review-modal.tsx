@@ -60,7 +60,7 @@ export function ReviewModal({
 
     try {
       const response = await reviewApi.submitReview(
-        order.artisanUsername,
+        order.artisanId,
         data
       );
       console.log("Review response:", response);

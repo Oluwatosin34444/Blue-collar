@@ -90,13 +90,15 @@ const Bookings = () => {
         </p>
       </div>
 
-      {user?.role === "Artisan" ? (
+      {user?.role === "Artisan" && (
         <DataTable
           columns={artisanColumns()}
           data={bookingOrders.orders}
           isLoading={loading}
         />
-      ) : (
+      )}
+
+      {user?.role === "User" && (
         <>
           <DataTable
             columns={userColumns({
@@ -121,6 +123,15 @@ const Bookings = () => {
             onReviewSubmitted={handleReviewSubmitted}
           />
         </>
+      )}
+
+      {user?.role === "Admin" && (
+        <p>Admin Bookings</p>
+        // <DataTable
+        //   columns={adminColumns()}
+        //   data={bookingOrders.orders}
+        //   isLoading={loading}
+        // />
       )}
     </div>
   );

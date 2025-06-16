@@ -7,6 +7,8 @@ import Container from "@/components/container";
 import { Rating, RatingButton } from "@/components/ui/rating";
 import { BookingModal } from "@/components/bookings/booking-modal";
 import { useAuth } from "@/contexts/use-auth";
+import { Marquee } from "@/components/magicui/marquee";
+import { ReviewCard } from "@/components/review-card";
 
 const ArtisanDetails = () => {
   const { id } = useParams();
@@ -77,77 +79,78 @@ const ArtisanDetails = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <Button variant="outline" className="mb-6" onClick={() => navigate(-1)}>
-        Back
-      </Button>
-
-      <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center text-center">
-        <img
-          src={
-            artisan.artisanImage ||
-            `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
-          }
-          alt={`${artisan.firstName}`}
-          className="w-32 h-32 rounded-full object-cover mb-4 border"
-        />
-
-        <h2 className="text-3xl font-bold mb-2">
-          {artisan.firstName} {artisan.lastName}
-        </h2>
-
-        <p className="text-lg text-gray-600 mb-2">{artisan.service}</p>
-
-        <div className="flex items-center justify-center mb-2">
-          <Rating defaultValue={artisan.rating} readOnly>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <RatingButton key={index} />
-            ))}
-          </Rating>
-          <span className="text-gray-500 ml-2">
-            ({artisan.reviews?.length ?? 0} reviews)
-          </span>
-        </div>
-
-        <p className="text-gray-700 mb-2">Location: {artisan.location}</p>
-
-        {user?.role === "User" && (
-          <BookingModal
-            artisanName={`${artisan.firstName} ${artisan.lastName}`}
-            artisanUsername={artisan.username}
-            serviceName={artisan.service}
-            userName={user?.username || ""}
-            artisanBooked={artisan.booked}
-            onBookingSuccess={() => {
-              setArtisan(prevArtisan => prevArtisan ? {
-                ...prevArtisan,
-                booked: true,
-              } : null);
-            }}
+    <div className="w-full mx-auto py-12 px-4">
+      <div className="w-6xl mx-auto">
+        <Button
+          variant="outline"
+          className="mb-6 border-input"
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </Button>
+        <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center text-center">
+          <img
+            src={
+              artisan.artisanImage ||
+              `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
+            }
+            alt={`${artisan.firstName}`}
+            className="w-32 h-32 rounded-full object-cover mb-4 border"
           />
-        )}
+
+          <h2 className="text-3xl font-bold mb-2">
+            {artisan.firstName} {artisan.lastName}
+          </h2>
+
+          <p className="text-lg text-gray-600 mb-2">{artisan.service}</p>
+
+          <div className="flex items-center justify-center mb-2">
+            <Rating defaultValue={artisan.rating} readOnly>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <RatingButton key={index} />
+              ))}
+            </Rating>
+            <span className="text-gray-500 ml-2">
+              ({artisan.reviews?.length ?? 0} reviews)
+            </span>
+          </div>
+
+          <p className="text-gray-700 mb-2">Location: {artisan.location}</p>
+
+          {user?.role === "User" && (
+            <BookingModal
+              artisanName={`${artisan.firstName} ${artisan.lastName}`}
+              artisanUsername={artisan.username}
+              serviceName={artisan.service}
+              userName={user?.username || ""}
+              isUserActive={user?.active || false}
+              artisanBooked={artisan.booked}
+              onBookingSuccess={() => {
+                setArtisan((prevArtisan) =>
+                  prevArtisan
+                    ? {
+                        ...prevArtisan,
+                        booked: true,
+                      }
+                    : null
+                );
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {artisan.reviews && artisan.reviews.length > 0 && (
         <div className="mt-10">
-          <h3 className="text-2xl font-semibold mb-4">Reviews</h3>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {artisan.reviews.map((review, index) => (
-              <div
-                key={index}
-                className="min-w-[250px] bg-gray-50 p-4 rounded-lg shadow-sm border"
-              >
-                <div className="font-semibold text-blue-700">
-                  {review.username}
-                </div>
-                <Rating defaultValue={review.rating} readOnly>
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <RatingButton key={index} />
-                  ))}
-                </Rating>
-                <p className="text-gray-600 text-sm">{review.comment}</p>
-              </div>
-            ))}
+          <h3 className="text-2xl font-semibold mb-4 text-center">Reviews</h3>
+          <div className="relative flex w-full items-center justify-center overflow-hidden !bg-[#F9F9F9] !p-0">
+            <Marquee pauseOnHover className="[--duration:55s] bg-[#F9F9F9]">
+              {artisan.reviews.map((review, index) => (
+                <ReviewCard key={index} {...review} />
+              ))}
+            </Marquee>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-white dark:from-background"></div>
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-white dark:from-background"></div>
           </div>
         </div>
       )}

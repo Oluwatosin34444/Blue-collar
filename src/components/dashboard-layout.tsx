@@ -9,6 +9,8 @@ import {
   Menu,
   LayoutDashboard,
   UserRoundCog,
+  Users,
+  BadgeCheckIcon,
 } from "lucide-react";
 import {
   Sheet,
@@ -17,6 +19,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export function DashboardLayout() {
   const { user, logout } = useAuth();
@@ -28,13 +31,25 @@ export function DashboardLayout() {
       name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
-      roles: ["User", "Artisan"],
+      roles: ["User", "Artisan", "Admin"],
     },
     {
       name: "Bookings",
       href: "/dashboard/bookings",
       icon: Calendar,
-      roles: ["User", "Artisan"],
+      roles: ["User", "Artisan", "Admin"],
+    },
+    {
+      name: "Artisans",
+      href: "/dashboard/artisans",
+      icon: Users,
+      roles: ["Admin"],
+    },
+    {
+      name: "Users",
+      href: "/dashboard/users",
+      icon: Users,
+      roles: ["Admin"],
     },
     {
       name: "KYC",
@@ -46,7 +61,7 @@ export function DashboardLayout() {
       name: "Profile Settings",
       href: "/dashboard/profile",
       icon: UserRoundCog,
-      roles: ["User", "Artisan"],
+      roles: ["User", "Artisan", "Admin"],
     },
   ];
 
@@ -105,7 +120,16 @@ export function DashboardLayout() {
         </Avatar>
         <div>
           <p className="font-medium">
-            {user?.firstName} {user?.lastName}
+            {user?.firstName} {user?.lastName} {" "}
+            {user?.role === "Artisan" && user?.verified && (
+            <Badge
+              variant="secondary"
+              className="bg-green-500 text-white"
+            >
+              <BadgeCheckIcon />
+              Verified
+            </Badge>
+          )}
           </p>
           <p className="text-sm text-gray-500">{user?.role}</p>
         </div>

@@ -5,7 +5,6 @@ import type {
   UserProfileResponse,
   UserSignUpData,
   UserSignUpResponse,
-  // UserUpdateProfileData,
 } from "@/lib/types";
 import axios from "axios";
 
@@ -77,6 +76,7 @@ export const authApi = {
         password,
       }
     );
+    console.log("artisan login response", response.data);
     return response.data;
   },
 

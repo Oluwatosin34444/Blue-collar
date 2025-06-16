@@ -30,8 +30,8 @@ import {
 import { locations } from "@/lib/constant";
 import type { UserSignUpData } from "@/lib/types";
 
-const ClientRegister = () => {
-  const { userSignUp, isLoading } = useAuth();
+const AdminRegister = () => {
+  const { adminSignUp, isLoading } = useAuth();
   const form = useForm<ClientRegistrationFormData>({
     resolver: zodResolver(clientRegistrationSchema),
     defaultValues: {
@@ -75,9 +75,9 @@ const ClientRegister = () => {
     };
 
     try {
-      await userSignUp(signUpData);
+      await adminSignUp(signUpData);
     } catch (error) {
-      console.error("Client registration failed:", error);
+      console.error("Admin registration failed:", error);
     }
   };
 
@@ -85,8 +85,8 @@ const ClientRegister = () => {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="max-w-3xl w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
-          <h2 className="text-3xl font-bold">Create Client Account</h2>
-          <p className="mt-2 text-gray-600">Join our community as a client</p>
+          <h2 className="text-3xl font-bold">Create Admin Account</h2>
+          <p className="mt-2 text-gray-600">Join our community as an admin</p>
         </div>
 
         <Form {...form}>
@@ -325,4 +325,4 @@ const ClientRegister = () => {
   );
 };
 
-export default ClientRegister;
+export default AdminRegister;

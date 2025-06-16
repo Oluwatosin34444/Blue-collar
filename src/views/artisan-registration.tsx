@@ -54,6 +54,7 @@ const ArtisanRegister = () => {
       confirmPassword: "",
       service: "",
       location: "",
+      address: "",
       agreeToTerms: false,
     },
     mode: "onChange",
@@ -78,6 +79,7 @@ const ArtisanRegister = () => {
       phone: data.phone,
       service: data.service,
       location: data.location,
+      address: data.address,
       password: data.password,
     };
 
@@ -340,31 +342,50 @@ const ArtisanRegister = () => {
 
             <FormField
               control={form.control}
-              name="password"
+              name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input
+                      placeholder="123 Main St, Lagos, Nigeria"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

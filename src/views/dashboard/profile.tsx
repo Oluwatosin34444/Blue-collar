@@ -67,6 +67,7 @@ const Profile = () => {
       email: "",
       phone: "",
       location: "",
+      address: "",
       service: "",
       userImage: undefined,
       artisanImage: undefined,
@@ -96,6 +97,7 @@ const Profile = () => {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
+        address: user.address || "",
         service: user.role === "Artisan" ? user.service : "",
         userImage: user.role === "User" ? user.userImage : undefined,
         artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
@@ -468,6 +470,20 @@ const Profile = () => {
                             </PopoverContent>
                           </Popover>
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

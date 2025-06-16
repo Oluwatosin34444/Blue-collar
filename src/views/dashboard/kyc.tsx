@@ -8,6 +8,7 @@ import {
   Clock,
   ChevronsUpDown,
   Check,
+  CalendarIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,14 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { PhoneInput } from "@/components/phone-input";
+import { useAuth } from "@/contexts/use-auth";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { kycApi } from "@/services/kyc-api";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -72,26 +81,34 @@ const ACCEPTED_IMAGE_TYPES = [
 
 const KYC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, refreshUserData } = useAuth();
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File[] }>(
     {}
   );
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role !== "Artisan") {
+      navigate("/dashboard");
+    }
+  }, [user?.role, navigate]);
 
   const form = useForm<KYCFormData>({
     resolver: zodResolver(kycSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      dateOfBirth: "",
-      gender: "",
-      streetAddress: "",
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      dateOfBirth: new Date(),
+      gender: "male",
+      streetAddress: user?.address || "",
       city: "",
       state: "",
       zipCode: "",
       country: "Nigeria",
-      service: "",
+      service: user?.role === "Artisan" ? user?.service : "",
       yearsOfExperience: "",
       certifications: "",
       workDescription: "",
@@ -132,28 +149,30 @@ const KYC = () => {
   const onSubmit = async (data: KYCFormData) => {
     setIsSubmitting(true);
 
+    const kycData = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+    };
+
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Prepare data for session storage (excluding files for simplicity)
-      const sessionData = {
-        ...data,
-        nationalId: uploadedFiles.nationalId?.[0]?.name || "",
-        proofOfAddress: uploadedFiles.proofOfAddress?.[0]?.name || "",
-        professionalCertificate:
-          uploadedFiles.professionalCertificate?.[0]?.name || "",
-        submittedAt: new Date().toISOString(),
-        status: "pending",
-      };
-
-      // Save to session storage
-      sessionStorage.setItem("kycFormData", JSON.stringify(sessionData));
-
-      setIsSubmitting(false);
+      const response = await kycApi.addArtisanKyc(user?.id || "", kycData);
+      toast.success(`${response.message}`);
+      await refreshUserData();
       setShowProgressModal(true);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error submitting KYC form:", error);
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data.message || "Failed to submit KYC form"
+        );
+      } else {
+        toast.error("Failed to submit KYC form");
+      }
+      setIsSubmitting(false);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -250,11 +269,39 @@ const KYC = () => {
                   control={form.control}
                   name="dateOfBirth"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date of birth</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal border-input",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            captionLayout="dropdown"
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -401,6 +448,7 @@ const KYC = () => {
                                   "w-full justify-between border-input font-normal",
                                   !field.value && "text-muted-foreground"
                                 )}
+                                disabled
                               >
                                 {field.value
                                   ? services?.find(
@@ -781,7 +829,7 @@ const KYC = () => {
             >
               {isSubmitting ? (
                 <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                   <span>Submitting...</span>
                 </div>
               ) : (
