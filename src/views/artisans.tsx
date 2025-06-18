@@ -23,6 +23,9 @@ import { Rating, RatingButton } from "@/components/ui/rating";
 import { BadgeCheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/use-auth";
+import FindArtisansModal from "@/components/find-artisans-modal";
+import { destructureAddress } from "@/lib/utils";
+import type { AddressType } from "@/components/address-autocomplete";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -35,11 +38,11 @@ const Artisans = () => {
   const [page, setPage] = useState(1);
   const [includedServices, setIncludedServices] = useState<string[]>([]);
   const [artisans, setArtisans] = useState<Artisan[]>([]);
-  // const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Sync URL parameters with state
+  const userAddress = destructureAddress(user?.address || "");
+
   useEffect(() => {
     const search = searchParams.get("search") || "";
     const serviceParam = searchParams.get("service") || "";
@@ -65,17 +68,14 @@ const Artisans = () => {
       setLoading(true);
       try {
         let allArtisans: Artisan[] = [];
-        // let currentPage = 1;
         let totalPages = 1;
 
-        // Fetch first page to get total pages
         const firstPageData = (await authApi.getAllArtisans(
           1
         )) as ArtisanResponse;
         totalPages = firstPageData.totalPages;
         allArtisans = [...firstPageData.artisanItems];
 
-        // Fetch remaining pages concurrently
         const pagePromises = [];
         for (let page = 2; page <= totalPages; page++) {
           pagePromises.push(authApi.getAllArtisans(page));
@@ -126,7 +126,6 @@ const Artisans = () => {
     });
   }, [artisans, service, location, searchTerm, includedServices]);
 
-  // After filtering
   const paginatedArtisans = useMemo(() => {
     return filteredArtisans.slice(
       (page - 1) * ITEMS_PER_PAGE,
@@ -139,17 +138,14 @@ const Artisans = () => {
   );
 
   const handleFilterChange = (type: "service" | "location", value: string) => {
-    // Update the state immediately for a responsive UI
     if (type === "service") {
       setService(value === "all" ? "" : value);
     } else {
       setLocation(value === "all" ? "" : value);
     }
 
-    // Reset to first page when filters change
     setPage(1);
 
-    // Update URL parameters
     const newParams: Record<string, string> = {
       page: "1",
     };
@@ -171,10 +167,8 @@ const Artisans = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Reset to first page when searching
     setPage(1);
 
-    // Update URL parameters
     const newParams: Record<string, string> = {
       page: "1",
     };
@@ -256,57 +250,66 @@ const Artisans = () => {
             </div>
           </div>
         )}
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col md:flex-row gap-4 items-center mb-4"
-        >
-          <Input
-            type="text"
-            placeholder="Search by name, service, or location..."
-            className="w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select
-            value={service || "all"}
-            onValueChange={(value) => handleFilterChange("service", value)}
+        <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col md:flex-row gap-4 items-center w-full"
           >
-            <SelectTrigger className="w-full border rounded-md px-3 py-2">
-              <SelectValue placeholder="All Services" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
-              {services.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={location || "all"}
-            onValueChange={(value) => handleFilterChange("location", value)}
-          >
-            <SelectTrigger className="w-full border rounded-md px-3 py-2">
-              <SelectValue placeholder="All Locations" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            type="submit"
-            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
-          >
-            Search
-          </Button>
-        </form>
-        <Button>Find artisans Around Me</Button>
+            <Input
+              type="text"
+              placeholder="Search by name, service, or location..."
+              className="w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Select
+              value={service || "all"}
+              onValueChange={(value) => handleFilterChange("service", value)}
+            >
+              <SelectTrigger className="w-full border rounded-md px-3 py-2">
+                <SelectValue placeholder="All Services" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Services</SelectItem>
+                {services.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={location || "all"}
+              onValueChange={(value) => handleFilterChange("location", value)}
+            >
+              <SelectTrigger className="w-full border rounded-md px-3 py-2">
+                <SelectValue placeholder="All Locations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>
+                    {loc}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="submit"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
+            >
+              Search
+            </Button>
+          </form>
+
+          {userAddress && (
+            <FindArtisansModal
+              artisans={artisans ?? []}
+              userAddress={userAddress as AddressType}
+              onArtisanClick={(artisanId) => navigate(`/artisans/${artisanId}`)}
+            />
+          )}
+        </div>
       </div>
 
       {paginatedArtisans?.length === 0 ? (

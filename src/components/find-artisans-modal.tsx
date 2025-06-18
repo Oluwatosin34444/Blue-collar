@@ -13,43 +13,8 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Loader2, MapPin, Search, BadgeCheckIcon } from "lucide-react"
 import { Rating, RatingButton } from "@/components/ui/rating";
-
-export interface AddressType {
-  address1: string
-  address2: string
-  formattedAddress: string
-  city: string
-  region: string
-  postalCode: string
-  country: string
-  lat: number
-  lng: number
-}
-
-export type Review = {
-  comment: string
-  rating: number
-  username: string
-}
-
-export interface Artisan {
-  _id: string
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  location: string
-  address: string
-  verified: boolean
-  artisanImage: string
-  active: boolean
-  service: string
-  booked: boolean
-  phone: string
-  rating: number
-  dateAdded: string
-  review: Review[]
-}
+import type { Artisan } from "@/lib/types"
+import type { AddressType } from "./address-autocomplete"
 
 interface FindArtisansModalProps {
   artisans: Artisan[]
@@ -104,15 +69,12 @@ export default function FindArtisansModal({ artisans, userAddress, onArtisanClic
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     const nearbyArtisans = artisans.filter((artisan) => {
-      // Try to parse the artisan's address
-      const artisanAddress = destructureAddress(artisan.address)
+      const artisanAddress = destructureAddress(artisan?.address || "")
 
-      // Skip artisans with string addresses (no coordinates)
       if (!artisanAddress) {
         return false
       }
 
-      // Calculate distance
       const distance = calculateDistance(userAddress.lat, userAddress.lng, artisanAddress.lat, artisanAddress.lng)
 
       return distance <= kmRange[0]
@@ -165,7 +127,6 @@ export default function FindArtisansModal({ artisans, userAddress, onArtisanClic
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Search Controls */}
           <div className="border-b pb-6 mb-6">
             <div className="space-y-4">
               <div>
@@ -193,7 +154,6 @@ export default function FindArtisansModal({ artisans, userAddress, onArtisanClic
             </div>
           </div>
 
-          {/* Results Section */}
           <div className="flex-1 overflow-y-auto">
             {isSearching && (
               <div className="flex flex-col items-center justify-center py-12">
@@ -267,7 +227,7 @@ export default function FindArtisansModal({ artisans, userAddress, onArtisanClic
                   <Button variant="outline" onClick={() => setKmRange([Math.min(50, kmRange[0] + 10)])}>
                     Increase Range
                   </Button>
-                  <Button variant="outline">Browse All Artisans</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>Browse All Artisans</Button>
                 </div>
               </div>
             )}

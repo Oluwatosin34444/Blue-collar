@@ -55,10 +55,12 @@ const Profile = () => {
     updateArtisanPassword,
   } = useAuth();
 
+  console.log(user, "user");
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { formattedAddress } = destructureAddress(user?.address || "");
+  const userAddress = destructureAddress(user?.address || "");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -100,7 +102,7 @@ const Profile = () => {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
-        address: formattedAddress || "",
+        address: "",
         service: user.role === "Artisan" ? user.service : "",
         userImage:
           user.role === "User" || user.role === "Admin"
@@ -116,7 +118,7 @@ const Profile = () => {
         setImagePreview(existingImage);
       }
     }
-  }, [user, form, formattedAddress]);
+  }, [user, form]);
 
   const isActive = form.watch("active");
 
@@ -491,6 +493,7 @@ const Profile = () => {
                           <AutocompleteComponent
                             value={field.value}
                             onChange={field.onChange}
+                            existingAddress={userAddress}
                           />
                         </FormControl>
                         <FormMessage />
