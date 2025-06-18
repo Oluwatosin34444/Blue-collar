@@ -19,7 +19,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/use-auth";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/phone-input";
-// import { LocationSelect } from "@/components/location-select";
 import {
   Select,
   SelectContent,
@@ -54,14 +53,6 @@ const AdminRegister = () => {
       toast.error("You must agree to the terms and conditions");
       return;
     }
-
-    // const locationParts = data.location.split("|");
-    // const locationData = {
-    //   placeId: locationParts[0] || "",
-    //   description: locationParts[1] || data.location,
-    // };
-
-    // console.log("locationData", locationData, locationParts);
 
     const signUpData: UserSignUpData = {
       firstName: data.firstName,
@@ -180,25 +171,6 @@ const AdminRegister = () => {
                   </FormItem>
                 )}
               />
-
-              {/* <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <LocationSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Search for a location..."
-                        disabled={field.disabled}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
 
               <FormField
                 control={form.control}

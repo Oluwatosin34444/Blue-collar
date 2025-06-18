@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { locations } from "@/lib/constant";
 import type { UserSignUpData } from "@/lib/types";
+import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
 
 const ClientRegister = () => {
   const { userSignUp, isLoading } = useAuth();
@@ -53,14 +54,6 @@ const ClientRegister = () => {
       toast.error("You must agree to the terms and conditions");
       return;
     }
-
-    // const locationParts = data.location.split("|");
-    // const locationData = {
-    //   placeId: locationParts[0] || "",
-    //   description: locationParts[1] || data.location,
-    // };
-
-    // console.log("locationData", locationData, locationParts);
 
     const signUpData: UserSignUpData = {
       firstName: data.firstName,
@@ -216,7 +209,10 @@ const ClientRegister = () => {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="123 Main St, Lagos, Nigeria" {...field} />
+                    <AutocompleteComponent
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -59,7 +59,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, destructureAddress } from "@/lib/utils";
 import { PhoneInput } from "@/components/phone-input";
 import { useAuth } from "@/contexts/use-auth";
 import { format } from "date-fns";
@@ -94,6 +94,8 @@ const KYC = () => {
     }
   }, [user?.role, navigate]);
 
+  const { formattedAddress, city , region, postalCode, country } = destructureAddress(user?.address || "");
+
   const form = useForm<KYCFormData>({
     resolver: zodResolver(kycSchema),
     defaultValues: {
@@ -103,11 +105,11 @@ const KYC = () => {
       phone: user?.phone || "",
       dateOfBirth: new Date(),
       gender: "male",
-      streetAddress: user?.address || "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "Nigeria",
+      streetAddress: formattedAddress || "",
+      city: city || "",
+      state: region || "",
+      zipCode: postalCode || "",
+      country: country || "Nigeria",
       service: user?.role === "Artisan" ? user?.service : "",
       yearsOfExperience: "",
       certifications: "",
@@ -354,7 +356,7 @@ const KYC = () => {
                   <FormItem>
                     <FormLabel>Street Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="123 Main Street, Lagos" {...field} />
+                      <Input placeholder="123 Main Street, Lagos" {...field} readOnly/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -369,7 +371,7 @@ const KYC = () => {
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input placeholder="Lagos" {...field} />
+                        <Input placeholder="Lagos" {...field} readOnly/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -382,7 +384,7 @@ const KYC = () => {
                     <FormItem>
                       <FormLabel>State</FormLabel>
                       <FormControl>
-                        <Input placeholder="Lagos State" {...field} />
+                        <Input placeholder="Lagos State" {...field} readOnly/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -398,7 +400,7 @@ const KYC = () => {
                     <FormItem>
                       <FormLabel>ZIP/Postal Code</FormLabel>
                       <FormControl>
-                        <Input placeholder="10001" {...field} />
+                        <Input placeholder="10001" {...field} readOnly/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

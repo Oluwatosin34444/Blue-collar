@@ -38,7 +38,6 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
-// import Autocomplete from "react-google-autocomplete";
 
 const ArtisanRegister = () => {
   const { artisanSignUp, isLoading } = useAuth();
@@ -319,13 +318,6 @@ const ArtisanRegister = () => {
               />
             </div>
 
-            <AutocompleteComponent />
-
-            {/* <Autocomplete
-              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-              onPlaceSelected={(place) => console.log(place)}
-            /> */}
-
             <FormField
               control={form.control}
               name="address"
@@ -333,9 +325,9 @@ const ArtisanRegister = () => {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="123 Main St, Lagos, Nigeria"
-                      {...field}
+                    <AutocompleteComponent
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

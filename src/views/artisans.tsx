@@ -22,6 +22,7 @@ import type { Artisan, ArtisanResponse } from "@/lib/types";
 import { Rating, RatingButton } from "@/components/ui/rating";
 import { BadgeCheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/use-auth";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -36,6 +37,7 @@ const Artisans = () => {
   const [artisans, setArtisans] = useState<Artisan[]>([]);
   // const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Sync URL parameters with state
   useEffect(() => {
@@ -304,6 +306,7 @@ const Artisans = () => {
             Search
           </Button>
         </form>
+        <Button>Find artisans Around Me</Button>
       </div>
 
       {paginatedArtisans?.length === 0 ? (

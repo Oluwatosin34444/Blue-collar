@@ -38,12 +38,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, destructureAddress } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { locations } from "@/lib/constant";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import Container from "@/components/container";
+import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
 
 const Profile = () => {
   const {
@@ -56,6 +57,8 @@ const Profile = () => {
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const { formattedAddress } = destructureAddress(user?.address || "");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -97,9 +100,12 @@ const Profile = () => {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
-        address: user.address || "",
+        address: formattedAddress || "",
         service: user.role === "Artisan" ? user.service : "",
-        userImage: user.role === "User" || user.role === "Admin" ? user.userImage : undefined,
+        userImage:
+          user.role === "User" || user.role === "Admin"
+            ? user.userImage
+            : undefined,
         artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
         active: user.active,
       });
@@ -110,7 +116,7 @@ const Profile = () => {
         setImagePreview(existingImage);
       }
     }
-  }, [user, form]);
+  }, [user, form, formattedAddress]);
 
   const isActive = form.watch("active");
 
@@ -482,7 +488,10 @@ const Profile = () => {
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <AutocompleteComponent
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

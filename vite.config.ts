@@ -16,6 +16,12 @@ export default defineConfig({
         target: 'https://wrkman.onrender.com',
         changeOrigin: true,
         secure: false,
+      },
+      '/gplaces': {
+        target: 'https://places.googleapis.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/gplaces/, '')
       }
     }
   }
