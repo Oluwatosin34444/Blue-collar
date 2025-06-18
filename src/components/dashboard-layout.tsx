@@ -138,7 +138,7 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 h-screen">
+    <div className="bg-gray-50 h-screen">
       <div className="flex h-screen">
         <div className="hidden lg:flex w-64 bg-white border-r flex-col justify-between">
           <SidebarContent />
