@@ -23,6 +23,8 @@ export interface CreateBookingOrder {
   artisanUsername: string;
   service_type: string;
   user_location: string;
+  customer_address: string;
+  booking_date: Date;
 }
 
 export interface CloseBookingOrder {

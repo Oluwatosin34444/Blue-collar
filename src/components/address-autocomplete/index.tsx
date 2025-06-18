@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FormMessages } from "@/components/form-messages";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,10 +9,8 @@ import {
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
-import { fetcher } from "@/lib/utils";
 import { Delete, Loader2, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import useSWR from "swr";
 import AddressDialog from "./address-dialog";
 
 import { Command as CommandPrimitive } from "cmdk";
@@ -38,6 +37,115 @@ interface AddressAutoCompleteProps {
   placeholder?: string;
 }
 
+async function fetchAutocompleteSuggestions(input: string) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing Google Maps API Key");
+  }
+
+  if (!input.trim()) {
+    return { data: [], error: null };
+  }
+
+  const url = "/gplaces/v1/places:autocomplete";
+
+  const primaryTypes = [
+    "street_address",
+    "subpremise",
+    "route",
+    "street_number",
+    "landmark",
+  ];
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+      },
+      body: JSON.stringify({
+        input: input,
+        includedPrimaryTypes: primaryTypes,
+        includedRegionCodes: ["NG"], // Default to Nigeria, you can make this dynamic
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data: data.suggestions || [], error: null };
+  } catch (error) {
+    console.error("Error fetching autocomplete suggestions:", error);
+    return {
+      data: [],
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+async function fetchPlaceDetails(placeId: string) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing Google Maps API Key");
+  }
+
+  const url = `/gplaces/v1/${placeId}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask":
+          "id,displayName,formattedAddress,addressComponents,location",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const addressComponents = data.addressComponents || [];
+    const address: AddressType = {
+      address1: data.formattedAddress || "",
+      address2: "",
+      formattedAddress: data.formattedAddress || "",
+      city:
+        addressComponents.find((comp: any) => comp.types.includes("locality"))
+          ?.longText || "",
+      region:
+        addressComponents.find((comp: any) =>
+          comp.types.includes("administrative_area_level_1")
+        )?.longText || "",
+      postalCode:
+        addressComponents.find((comp: any) =>
+          comp.types.includes("postal_code")
+        )?.longText || "",
+      country:
+        addressComponents.find((comp: any) => comp.types.includes("country"))
+          ?.longText || "",
+      lat: data.location?.latitude || 0,
+      lng: data.location?.longitude || 0,
+    };
+
+    return { data: { address, adrAddress: data }, error: null };
+  } catch (error) {
+    console.error("Error fetching place details:", error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const {
     address,
@@ -51,25 +159,26 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
 
   const [selectedPlaceId, setSelectedPlaceId] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [adrAddress, setAdrAddress] = useState(null);
 
-  const { data, isLoading } = useSWR(
-    // For real use case: /api/address/place?placeId=${selectedPlaceId}
-    selectedPlaceId === ""
-      ? null
-      : `/api/address/place?placeId=${selectedPlaceId}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  );
-
-  const adrAddress = data?.data.adrAddress;
+  console.log(selectedPlaceId, "see selectedPlaceId");
 
   useEffect(() => {
-    if (data?.data.address) {
-      setAddress(data.data.address as AddressType);
+    if (selectedPlaceId) {
+      setIsLoadingDetails(true);
+      fetchPlaceDetails(selectedPlaceId)
+        .then((result) => {
+          if (result.data) {
+            setAddress(result.data.address);
+            setAdrAddress(result.data.adrAddress);
+          }
+        })
+        .finally(() => {
+          setIsLoadingDetails(false);
+        });
     }
-  }, [data, setAddress]);
+  }, [selectedPlaceId, setAddress]);
 
   return (
     <>
@@ -78,16 +187,16 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           <Input value={address?.formattedAddress} readOnly />
 
           <AddressDialog
-            isLoading={isLoading}
+            isLoading={isLoadingDetails}
             dialogTitle={dialogTitle}
-            adrAddress={adrAddress}
+            adrAddress={adrAddress || ""}
             address={address}
             setAddress={setAddress}
             open={isOpen}
             setOpen={setIsOpen}
           >
             <Button
-              disabled={isLoading}
+              disabled={isLoadingDetails}
               size="icon"
               variant="outline"
               className="shrink-0"
@@ -110,6 +219,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
                 lat: 0,
                 lng: 0,
               });
+              setAdrAddress(null);
             }}
             size="icon"
             variant="outline"
@@ -155,6 +265,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [predictions, setPredictions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
@@ -167,13 +280,28 @@ function AddressAutoCompleteInput(props: CommonProps) {
 
   const debouncedSearchInput = useDebounce(searchInput, 500);
 
-  const { data, isLoading } = useSWR(
-    // For real use case: /api/address/autocomplete?input=${debouncedSearchInput}
-    `/api/address/autocomplete?input=${debouncedSearchInput}`,
-    fetcher
-  );
+  useEffect(() => {
+    if (debouncedSearchInput.trim()) {
+      setIsLoading(true);
+      setError(null);
 
-  const predictions = data?.data || [];
+      fetchAutocompleteSuggestions(debouncedSearchInput)
+        .then((result) => {
+          if (result.error) {
+            setError(result.error);
+            setPredictions([]);
+          } else {
+            setPredictions(result.data);
+          }
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setPredictions([]);
+      setError(null);
+    }
+  }, [debouncedSearchInput]);
 
   return (
     <Command
@@ -188,14 +316,25 @@ function AddressAutoCompleteInput(props: CommonProps) {
           onBlur={close}
           onFocus={open}
           placeholder={placeholder || "Enter address"}
-          className="w-full p-3 rounded-lg outline-none"
+          className="w-full file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm
+        focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]
+        aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
         />
       </div>
+
       {searchInput !== "" && !isOpen && !selectedPlaceId && showInlineError && (
         <FormMessages
           type="error"
           className="pt-1 text-sm"
           messages={["Select a valid address from the list"]}
+        />
+      )}
+
+      {error && (
+        <FormMessages
+          type="error"
+          className="pt-1 text-sm"
+          messages={[`Error: ${error}`]}
         />
       )}
 

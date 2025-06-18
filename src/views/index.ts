@@ -11,5 +11,9 @@ import Dashboard from "./dashboard/dashboard";
 import Bookings from "./dashboard/bookings";
 import Profile from "./dashboard/profile";
 import KYC from "./dashboard/kyc";
+import DashboardArtisans from "./dashboard/artisans";
+import DashboardUsers from "./dashboard/users";
+import AdminRegistration from "./admin-registration";
+import AdminLogin from "./admin-login";
 
-export { Home, About, Contact, Artisans, Services, Login, Register, ClientRegistration, ArtisanRegistration, Dashboard, Bookings, Profile, KYC };
+export { Home, About, Contact, Artisans, Services, Login, Register, ClientRegistration, ArtisanRegistration, Dashboard, Bookings, Profile, KYC, AdminRegistration, AdminLogin, DashboardArtisans, DashboardUsers };

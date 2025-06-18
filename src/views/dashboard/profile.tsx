@@ -38,12 +38,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, destructureAddress } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { locations } from "@/lib/constant";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import Container from "@/components/container";
+import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
 
 const Profile = () => {
   const {
@@ -54,8 +55,12 @@ const Profile = () => {
     updateArtisanPassword,
   } = useAuth();
 
+  console.log(user, "user");
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const userAddress = destructureAddress(user?.address || "");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -67,6 +72,7 @@ const Profile = () => {
       email: "",
       phone: "",
       location: "",
+      address: "",
       service: "",
       userImage: undefined,
       artisanImage: undefined,
@@ -96,8 +102,12 @@ const Profile = () => {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
+        address: "",
         service: user.role === "Artisan" ? user.service : "",
-        userImage: user.role === "User" ? user.userImage : undefined,
+        userImage:
+          user.role === "User" || user.role === "Admin"
+            ? user.userImage
+            : undefined,
         artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
         active: user.active,
       });
@@ -149,7 +159,7 @@ const Profile = () => {
     }
 
     try {
-      if (user?.role === "User") {
+      if (user?.role === "User" || user?.role === "Admin") {
         const userData = {
           ...data,
           userImage: selectedFile || data.userImage,
@@ -174,7 +184,7 @@ const Profile = () => {
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
     try {
-      if (user?.role === "User") {
+      if (user?.role === "User" || user?.role === "Admin") {
         await updateUserPassword(data);
       } else {
         await updateArtisanPassword(data);
@@ -468,6 +478,24 @@ const Profile = () => {
                             </PopoverContent>
                           </Popover>
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <AutocompleteComponent
+                            value={field.value}
+                            onChange={field.onChange}
+                            existingAddress={userAddress}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

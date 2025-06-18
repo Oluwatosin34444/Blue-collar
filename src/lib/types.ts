@@ -6,6 +6,7 @@ export interface ArtisanSignUpData {
   phone: string;
   service: string;
   location: string;
+  address: string;
   artisanImage?: File | null;
   password: string;
 }
@@ -18,7 +19,9 @@ export interface UserSignUpData {
   password: string;
   phone: string;
   location: string;
+  address: string;
   userImage?: File | null;
+  role: string;
 }
 
 export interface ArtisanSignUpResponse {
@@ -59,6 +62,7 @@ export interface UserProfileResponse {
   role: string;
   phone: string;
   location: string;
+  address: string;
   id: string;
   firstName: string;
   lastName: string;
@@ -80,23 +84,13 @@ export interface ArtisanProfileResponse {
   lastName: string;
   service: string;
   location: string;
+  address: string;
+  verified: boolean;
   artisanImage: string;
   booked: boolean;
   success: boolean;
   active: boolean;
 }
-
-//Let user update profile expect this file type
-export type UserUpdateProfileData = {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone: string;
-  location: string;
-  active: boolean;
-  userImage: File | string | null;
-};
 
 export interface PasswordUpdateResponse {
   message: string;
@@ -112,9 +106,42 @@ export type Review = {
 export interface BookingOrder {
   _id: string;
   booked_by: string;
+  customer_name: string;
+  customer_phone: string;
   user_location: string;
   artisanUsername: string;
+  artisanFullName: string;
+  artisanId: string;
+  artisanPhone: string;
+  customer_address: string;
   booking_date: string;
   service_type: string;
   state: number;
+}
+
+export interface Artisan {
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  location: string;
+  address: string;
+  verified: boolean;
+  artisanImage: string;
+  active: boolean;
+  service: string;
+  booked: boolean;
+  phone: string;
+  rating: number;
+  dateAdded: string;
+  review: Review[];
+}
+
+export interface ArtisanResponse {
+  artisanItems: Artisan[];
+  totalArtisanItems: number;
+  currentPage: number;
+  totalPages: number;
+  success: boolean;
 }

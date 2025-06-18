@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,33 +18,14 @@ import { locations, services } from "@/lib/constant";
 import Container from "@/components/container";
 import { authApi } from "@/services/auth-api";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Review } from "@/lib/types";
+import type { Artisan, ArtisanResponse } from "@/lib/types";
 import { Rating, RatingButton } from "@/components/ui/rating";
-
-interface Artisan {
-  _id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  location: string;
-  artisanImage: string;
-  active: boolean;
-  service: string;
-  booked: boolean;
-  phone: string;
-  rating: number;
-  dateAdded: string;
-  review: Review[];
-}
-
-interface ArtisanResponse {
-  artisanItems: Artisan[];
-  totalArtisanItems: number;
-  currentPage: number;
-  totalPages: number;
-  success: boolean;
-}
+import { BadgeCheckIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/use-auth";
+import FindArtisansModal from "@/components/find-artisans-modal";
+import { destructureAddress } from "@/lib/utils";
+import type { AddressType } from "@/components/address-autocomplete";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -57,10 +38,11 @@ const Artisans = () => {
   const [page, setPage] = useState(1);
   const [includedServices, setIncludedServices] = useState<string[]>([]);
   const [artisans, setArtisans] = useState<Artisan[]>([]);
-  // const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Sync URL parameters with state
+  const userAddress = destructureAddress(user?.address || "");
+
   useEffect(() => {
     const search = searchParams.get("search") || "";
     const serviceParam = searchParams.get("service") || "";
@@ -85,8 +67,28 @@ const Artisans = () => {
     const fetchArtisans = async () => {
       setLoading(true);
       try {
-        const data = (await authApi.getAllArtisans(page)) as ArtisanResponse;
-        setArtisans(data.artisanItems.filter((artisan) => artisan.active));
+        let allArtisans: Artisan[] = [];
+        let totalPages = 1;
+
+        const firstPageData = (await authApi.getAllArtisans(
+          1
+        )) as ArtisanResponse;
+        totalPages = firstPageData.totalPages;
+        allArtisans = [...firstPageData.artisanItems];
+
+        const pagePromises = [];
+        for (let page = 2; page <= totalPages; page++) {
+          pagePromises.push(authApi.getAllArtisans(page));
+        }
+
+        const responses = await Promise.all(pagePromises);
+        responses.forEach((response: ArtisanResponse) => {
+          allArtisans = [...allArtisans, ...response.artisanItems];
+        });
+
+        setArtisans(
+          allArtisans.filter((artisan) => artisan.active && artisan.verified)
+        );
       } catch (error) {
         console.error("Error fetching artisans:", error);
         setArtisans([]);
@@ -95,43 +97,52 @@ const Artisans = () => {
       }
     };
     fetchArtisans();
-  }, [page]);
+  }, []);
 
-  const filteredArtisans = artisans?.filter((artisan) => {
-    const matchesService = !service || artisan.service === service;
-    const matchesLocation = !location || artisan.location === location;
-    const matchesSearch =
-      !searchTerm ||
-      `${artisan.firstName} ${artisan.lastName}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      artisan.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      artisan.service.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredArtisans = useMemo(() => {
+    return artisans?.filter((artisan) => {
+      const matchesService = !service || artisan.service === service;
+      const matchesLocation = !location || artisan.location === location;
+      const matchesSearch =
+        !searchTerm ||
+        `${artisan.firstName} ${artisan.lastName}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        artisan.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        artisan.service.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesIncludedServices =
-      includedServices.length === 0 ||
-      includedServices.some(
-        (includedService) =>
-          artisan.service.toLowerCase() === includedService.toLowerCase()
-      );
+      const matchesIncludedServices =
+        includedServices.length === 0 ||
+        includedServices.some(
+          (includedService) =>
+            artisan.service.toLowerCase() === includedService.toLowerCase()
+        );
 
-    if (includedServices.length > 0) {
-      return matchesIncludedServices && matchesSearch;
-    }
+      if (includedServices.length > 0) {
+        return matchesIncludedServices && matchesSearch;
+      }
 
-    return matchesService && matchesLocation && matchesSearch;
-  });
+      return matchesService && matchesLocation && matchesSearch;
+    });
+  }, [artisans, service, location, searchTerm, includedServices]);
 
-  const paginatedArtisans = filteredArtisans?.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
+  const paginatedArtisans = useMemo(() => {
+    return filteredArtisans.slice(
+      (page - 1) * ITEMS_PER_PAGE,
+      page * ITEMS_PER_PAGE
+    );
+  }, [filteredArtisans, page]);
+
+  const totalFilteredPages = Math.ceil(
+    filteredArtisans.length / ITEMS_PER_PAGE
   );
 
   const handleFilterChange = (type: "service" | "location", value: string) => {
-    const newService =
-      type === "service" ? (value === "all" ? "" : value) : service;
-    const newLocation =
-      type === "location" ? (value === "all" ? "" : value) : location;
+    if (type === "service") {
+      setService(value === "all" ? "" : value);
+    } else {
+      setLocation(value === "all" ? "" : value);
+    }
 
     setPage(1);
 
@@ -140,16 +151,22 @@ const Artisans = () => {
     };
 
     if (searchTerm) newParams.search = searchTerm;
-    if (newService) newParams.service = newService;
-    if (newLocation) newParams.location = newLocation;
-    if (includedServices.length > 0)
+    if (type === "service" ? value !== "all" : service) {
+      newParams.service = type === "service" ? value : service;
+    }
+    if (type === "location" ? value !== "all" : location) {
+      newParams.location = type === "location" ? value : location;
+    }
+    if (includedServices.length > 0) {
       newParams.includedServices = includedServices.join(",");
+    }
 
     setSearchParams(newParams);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+
     setPage(1);
 
     const newParams: Record<string, string> = {
@@ -159,8 +176,9 @@ const Artisans = () => {
     if (searchTerm) newParams.search = searchTerm;
     if (service) newParams.service = service;
     if (location) newParams.location = location;
-    if (includedServices.length > 0)
+    if (includedServices.length > 0) {
       newParams.includedServices = includedServices.join(",");
+    }
 
     setSearchParams(newParams);
   };
@@ -232,59 +250,69 @@ const Artisans = () => {
             </div>
           </div>
         )}
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col md:flex-row gap-4 items-center mb-4"
-        >
-          <Input
-            type="text"
-            placeholder="Search by name, service, or location..."
-            className="w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select
-            value={service || "all"}
-            onValueChange={(value) => handleFilterChange("service", value)}
+        <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col md:flex-row gap-4 items-center w-full"
           >
-            <SelectTrigger className="w-full border rounded-md px-3 py-2">
-              <SelectValue placeholder="All Services" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
-              {services.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={location || "all"}
-            onValueChange={(value) => handleFilterChange("location", value)}
-          >
-            <SelectTrigger className="w-full border rounded-md px-3 py-2">
-              <SelectValue placeholder="All Locations" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            type="submit"
-            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
-          >
-            Search
-          </Button>
-        </form>
+            <Input
+              type="text"
+              placeholder="Search by name, service, or location..."
+              className="w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Select
+              value={service || "all"}
+              onValueChange={(value) => handleFilterChange("service", value)}
+            >
+              <SelectTrigger className="w-full border rounded-md px-3 py-2">
+                <SelectValue placeholder="All Services" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Services</SelectItem>
+                {services.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={location || "all"}
+              onValueChange={(value) => handleFilterChange("location", value)}
+            >
+              <SelectTrigger className="w-full border rounded-md px-3 py-2">
+                <SelectValue placeholder="All Locations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>
+                    {loc}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="submit"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
+            >
+              Search
+            </Button>
+          </form>
+
+          {userAddress && (
+            <FindArtisansModal
+              artisans={artisans ?? []}
+              userAddress={userAddress as AddressType}
+              onArtisanClick={(artisanId) => navigate(`/artisans/${artisanId}`)}
+            />
+          )}
+        </div>
       </div>
 
-      {filteredArtisans?.length === 0 ? (
+      {paginatedArtisans?.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
             <div className="text-gray-400 mb-4">
@@ -341,14 +369,26 @@ const Artisans = () => {
               onClick={() => navigate(`/artisans/${artisan._id}`)}
               className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-none pt-0"
             >
-              <img
-                src={
-                  artisan.artisanImage ||
-                  `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
-                }
-                alt={`${artisan.firstName} ${artisan.lastName}`}
-                className="w-full h-54 object-cover rounded-t-lg"
-              />
+              <div className="relative">
+                <img
+                  src={
+                    artisan.artisanImage ||
+                    `https://ui-avatars.com/api/?name=${artisan.firstName}+${artisan.lastName}`
+                  }
+                  alt={`${artisan.firstName} ${artisan.lastName}`}
+                  className="w-full h-54 object-cover rounded-t-lg"
+                />
+                {artisan?.verified && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-500 text-white absolute top-2 right-2"
+                  >
+                    <BadgeCheckIcon />
+                    Verified
+                  </Badge>
+                )}
+              </div>
+
               <CardContent className="space-y-1">
                 <h3 className="text-xl font-semibold">{`${artisan.firstName} ${artisan.lastName}`}</h3>
                 <p className="text-gray-600">{artisan.service}</p>
@@ -366,10 +406,10 @@ const Artisans = () => {
         </div>
       )}
 
-      {filteredArtisans?.length > 0 && (
+      {paginatedArtisans?.length > 0 && (
         <CustomPagination
           currentPage={page}
-          totalPages={Math.ceil(filteredArtisans.length / ITEMS_PER_PAGE)}
+          totalPages={totalFilteredPages}
           onPageChange={handlePageChange}
           className="mt-8"
         />

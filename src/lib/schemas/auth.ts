@@ -27,6 +27,7 @@ export const clientRegistrationSchema = z
     password: z.string().min(8, "Password must be at least 8 characters"),
     phone: z.string().refine(isValidPhoneNumber, "Invalid phone number"),
     location: z.string().min(1, "Please select a location"),
+    address: z.string().min(1, "Please enter your address"),
     userImage: imageSchema,
     confirmPassword: z.string(),
     agreeToTerms: z.boolean().refine((val) => val === true, {
@@ -49,6 +50,7 @@ export const artisanRegistrationSchema = z
     confirmPassword: z.string(),
     service: z.string().min(1, "Please select a service"),
     location: z.string().min(1, "Please select a location"),
+    address: z.string().min(1, "Please enter your address"),
     agreeToTerms: z.boolean().refine((val) => val === true, {
       message: "You must agree to the terms and conditions",
     }),
@@ -79,6 +81,7 @@ export const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   phone: z.string().refine(isValidPhoneNumber, "Invalid phone number"),
   location: z.string().min(1, "Please select a location"),
+  address: z.string().min(1, "Please enter your address"),
   service: z.string().optional(),
   userImage: imageSchema,
   artisanImage: imageSchema,

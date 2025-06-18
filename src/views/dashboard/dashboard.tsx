@@ -78,24 +78,28 @@ export default function Dashboard() {
   const artisanStats = [
     {
       title: "In Progress Orders",
-      value: 24,
-      trend: "up" as const,
-      percentage: "+15%",
-      description: "Active orders increasing",
+      value: bookingOrders.orders.filter((order) => order.state === 0).length,
+      trend:
+        bookingOrders.orders.filter((order) => order.state === 0).length > 0
+          ? ("up" as const)
+          : ("down" as const),
+      description: "Artisan currently engaged",
     },
     {
       title: "Closed Orders",
-      value: 156,
-      trend: "down" as const,
-      percentage: "-8%",
-      description: "Completion rate needs attention",
+      value: bookingOrders.orders.filter((order) => order.state === 1).length,
+      trend:
+        bookingOrders.orders.filter((order) => order.state === 1).length > 0
+          ? ("up" as const)
+          : ("down" as const),
+      description: "Total orders fulfilled and closed",
     },
     {
       title: "Total Orders",
-      value: 1892,
-      trend: "up" as const,
-      percentage: "+12%",
-      description: "Order volume growing steadily",
+      value: bookingOrders.totalOrders,
+      trend:
+        bookingOrders.totalOrders > 0 ? ("up" as const) : ("down" as const),
+      description: "Total orders booked on the platform",
     },
   ];
 
@@ -121,7 +125,6 @@ export default function Dashboard() {
               title={stat.title}
               value={stat.value}
               trend={stat.trend}
-              percentage={stat.percentage}
               description={stat.description}
               isLoading={loading}
               />
@@ -142,6 +145,12 @@ export default function Dashboard() {
               isLoading={loading}
             />
           ))}
+        </div>
+      )}
+
+      {user?.role === "Admin" && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <p>Admin Dashboard</p>
         </div>
       )}
     </div>

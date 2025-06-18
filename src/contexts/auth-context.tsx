@@ -23,12 +23,18 @@ type BaseUser = {
   email: string;
   phone: string;
   location: string;
+  address: string;
   active: boolean;
   id: string;
 };
 
 export type RegularUser = BaseUser & {
   role: "User";
+  userImage: string;
+};
+
+export type Admin = BaseUser & {
+  role: "Admin";
   userImage: string;
 };
 
@@ -39,19 +45,22 @@ export type Artisan = BaseUser & {
   booked: boolean;
   reviews: Review[];
   rating: number;
+  verified: boolean;
 };
 
-type User = RegularUser | Artisan;
+type User = RegularUser | Artisan | Admin;
 
 export interface AuthContextType {
-  role: "User" | "Artisan";
+  role: "User" | "Artisan" | "Admin";
   user: User | null;
   token: string | null;
   isLoading: boolean;
   logout: () => void;
   artisanSignUp: (data: ArtisanSignUpData) => Promise<ArtisanSignUpResponse>;
   userSignUp: (data: UserSignUpData) => Promise<UserSignUpResponse>;
+  adminSignUp: (data: UserSignUpData) => Promise<UserSignUpResponse>;
   userLogin: (email: string, password: string) => Promise<UserProfileResponse>;
+  adminLogin: (email: string, password: string) => Promise<UserProfileResponse>;
   artisanLogin: (
     email: string,
     password: string
@@ -113,10 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (field) => typeof userObj[field] === "string" && userObj[field]
     );
 
-    const isValidRole = userObj.role === "User" || userObj.role === "Artisan";
+    const isValidRole = userObj.role === "User" || userObj.role === "Artisan" || userObj.role === "Admin";
 
     // Additional role-specific validation
-    if (userObj.role === "User") {
+    if (userObj.role === "User" || userObj.role === "Admin") {
       return (
         hasRequiredFields &&
         isValidRole &&
@@ -130,7 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         typeof userObj.service === "string" &&
         typeof userObj.artisanImage === "string" &&
         typeof userObj.username === "string" &&
-        typeof userObj.booked === "boolean"
+        typeof userObj.booked === "boolean" &&
+        typeof userObj.verified === "boolean"
       );
     }
 
@@ -240,11 +250,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
-      const userWithRole = { ...userData, role: "User" } as RegularUser;
+      const userWithRole = { ...userData } as RegularUser | Admin;
       updateLocalUserData(userWithRole);
       setToken(token);
 
-      navigate("/");
+      if (userWithRole.role === "User") {
+        navigate("/");
+      } else if (userWithRole.role === "Admin") {
+        navigate("/dashboard");
+      }
+
+      return response;
+    } catch (error) {
+      console.error("User login failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Login failed");
+      } else {
+        toast.error("An error occurred");
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const adminSignUp = async (data: UserSignUpData) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.userSignUp(data);
+      toast.success(response.message);
+      navigate(`/admin-login`);
+      return response;
+    } catch (error) {
+      console.error("Admin signup failed:", error);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message || "Signup failed");
+      } else {
+        toast.error("An error occurred");
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const adminLogin = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.userLogin(email, password);
+      console.log("user login response", response);
+      const { token, ...userData } = response;
+
+      localStorage.setItem("token", token);
+      const userWithRole = { ...userData, role: "Admin" } as Admin;
+      updateLocalUserData(userWithRole);
+      setToken(token);
+
+      navigate("/dashboard");
       return response;
     } catch (error) {
       console.error("User login failed:", error);
@@ -291,14 +353,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      if (user.role === "User") {
+      if (user.role === "User" || user.role === "Admin") {
         const response = await authApi.getUserProfile();
         const user = response.user;
         const updatedUser = {
           ...user,
-          role: "User",
+          role: user.role,
           id: user._id,
-        } as RegularUser;
+        } as RegularUser | Admin;
         updateLocalUserData(updatedUser);
         toast.success("Profile data refreshed successfully");
       } else {
@@ -340,7 +402,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("phone", data.phone?.trim() || "");
       formData.append("location", data.location?.trim() || "");
       formData.append("active", data.active.toString());
-
+      formData.append("address", data.address || "");
       if (data.userImage instanceof File) {
         formData.append("userImage", data.userImage);
       }
@@ -374,6 +436,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("email", data.email?.trim() || "");
       formData.append("phone", data.phone?.trim() || "");
       formData.append("location", data.location?.trim() || "");
+      formData.append("address", data.address || "");
       formData.append("service", data.service?.trim() || "");
       formData.append("active", data.active.toString());
 
@@ -509,6 +572,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         artisanLogin,
         userLogin,
         userSignUp,
+        adminSignUp,
+        adminLogin,
         updateUserProfile,
         updateArtisanProfile,
         updateUserPassword,

@@ -24,12 +24,14 @@ import { bookingApi, type CreateBookingOrder } from "@/services/booking-api";
 import { toast } from "sonner";
 import { bookingFormSchema, type BookingFormData } from "@/lib/schemas/booking";
 import { DateTimePicker } from "../ui/date-time-picker";
+import type { AxiosError } from "axios";
 
 interface BookingModalProps {
   artisanName: string;
   artisanUsername: string;
   serviceName: string;
   userName: string;
+  isUserActive: boolean;
   artisanBooked: boolean;
   onBookingSuccess: () => void;
 }
@@ -39,6 +41,7 @@ export function BookingModal({
   artisanUsername,
   serviceName,
   userName,
+  isUserActive,
   artisanBooked,
   onBookingSuccess,
 }: BookingModalProps) {
@@ -63,6 +66,11 @@ export function BookingModal({
   });
 
   const handleBookingSubmit = async (data: BookingFormData) => {
+    if (!isUserActive) {
+      toast.error("Please activate your account to book an artisan");
+      return;
+    }
+    
     if (data.date < new Date()) {
       toast.error("Please select a date in the future");
       return;
@@ -78,6 +86,8 @@ export function BookingModal({
       artisanUsername: data.artisanUsername,
       service_type: data.serviceName,
       user_location: data.address,
+      customer_address: data.address,
+      booking_date: data.date,
     };
 
     try {
@@ -88,9 +98,14 @@ export function BookingModal({
       form.reset();
       onBookingSuccess();
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating booking order:", error);
-      toast.error("Error creating booking order");
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(axiosError.response?.data.message || "Failed to create booking order");
+      } else {
+        toast.error("Failed to create booking order");
+      }
       setIsLoading(false);
     } finally {
       setIsLoading(false);
