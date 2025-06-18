@@ -30,12 +30,12 @@ export const AutocompleteComponent = ({ value, onChange, existingAddress }: Auto
 
   const handleAddressChange = useCallback((newAddress: AddressType) => {
     console.log('handleAddressChange called with:', newAddress);
-    setAddress(newAddress);
+    setAddress(newAddress || existingAddress);
     if (onChange) {
       console.log('Calling onChange with:', newAddress.formattedAddress, JSON.stringify(newAddress));
       onChange(JSON.stringify(newAddress));
     }
-  }, [onChange]);
+  }, [onChange, existingAddress]);
 
   return (
     <AddressAutoComplete

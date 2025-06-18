@@ -33,7 +33,7 @@ function App() {
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="h-screen bg-gray-50 overflow-y-visible">
         {!isDashboardRoute && <MyAppNav />}
 
         <Routes>

@@ -102,7 +102,7 @@ const Profile = () => {
         email: user.email || "",
         phone: user.phone || "",
         location: user.location || "",
-        address: "",
+        address: user.address || "",
         service: user.role === "Artisan" ? user.service : "",
         userImage:
           user.role === "User" || user.role === "Admin"
