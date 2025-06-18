@@ -19,7 +19,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/use-auth";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/phone-input";
-// import { LocationSelect } from "@/components/location-select";
 import {
   Select,
   SelectContent,
@@ -72,6 +71,7 @@ const ClientRegister = () => {
       phone: data.phone,
       location: data.location,
       address: data.address,
+      role: "User",
     };
 
     try {
@@ -179,25 +179,6 @@ const ClientRegister = () => {
                   </FormItem>
                 )}
               />
-
-              {/* <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <LocationSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Search for a location..."
-                        disabled={field.disabled}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
 
               <FormField
                 control={form.control}

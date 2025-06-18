@@ -122,10 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (field) => typeof userObj[field] === "string" && userObj[field]
     );
 
-    const isValidRole = userObj.role === "User" || userObj.role === "Artisan";
+    const isValidRole = userObj.role === "User" || userObj.role === "Artisan" || userObj.role === "Admin";
 
     // Additional role-specific validation
-    if (userObj.role === "User") {
+    if (userObj.role === "User" || userObj.role === "Admin") {
       return (
         hasRequiredFields &&
         isValidRole &&
@@ -250,11 +250,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
-      const userWithRole = { ...userData, role: "User" } as RegularUser;
+      const userWithRole = { ...userData } as RegularUser | Admin;
       updateLocalUserData(userWithRole);
       setToken(token);
 
-      navigate("/");
+      if (userWithRole.role === "User") {
+        navigate("/");
+      } else if (userWithRole.role === "Admin") {
+        navigate("/dashboard");
+      }
+
       return response;
     } catch (error) {
       console.error("User login failed:", error);
@@ -274,7 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.userSignUp(data);
       toast.success(response.message);
-      navigate(`/login?role=Admin`);
+      navigate(`/admin-login`);
       return response;
     } catch (error) {
       console.error("Admin signup failed:", error);
@@ -301,7 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateLocalUserData(userWithRole);
       setToken(token);
 
-      navigate("/");
+      navigate("/dashboard");
       return response;
     } catch (error) {
       console.error("User login failed:", error);
@@ -348,14 +353,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      if (user.role === "User") {
+      if (user.role === "User" || user.role === "Admin") {
         const response = await authApi.getUserProfile();
         const user = response.user;
         const updatedUser = {
           ...user,
-          role: "User",
+          role: user.role,
           id: user._id,
-        } as RegularUser;
+        } as RegularUser | Admin;
         updateLocalUserData(updatedUser);
         toast.success("Profile data refreshed successfully");
       } else {

@@ -21,7 +21,7 @@ export interface UserSignUpData {
   location: string;
   address: string;
   userImage?: File | null;
-  // role: string;
+  role: string;
 }
 
 export interface ArtisanSignUpResponse {
@@ -117,4 +117,31 @@ export interface BookingOrder {
   booking_date: string;
   service_type: string;
   state: number;
+}
+
+export interface Artisan {
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  location: string;
+  address: string;
+  verified: boolean;
+  artisanImage: string;
+  active: boolean;
+  service: string;
+  booked: boolean;
+  phone: string;
+  rating: number;
+  dateAdded: string;
+  review: Review[];
+}
+
+export interface ArtisanResponse {
+  artisanItems: Artisan[];
+  totalArtisanItems: number;
+  currentPage: number;
+  totalPages: number;
+  success: boolean;
 }

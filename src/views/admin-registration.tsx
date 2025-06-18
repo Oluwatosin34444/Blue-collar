@@ -72,6 +72,7 @@ const AdminRegister = () => {
       phone: data.phone,
       location: data.location,
       address: data.address,
+      role: "Admin",
     };
 
     try {

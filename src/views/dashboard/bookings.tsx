@@ -85,8 +85,12 @@ const Bookings = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
         <p className="mt-2 text-sm text-gray-600">
-          View and manage your{" "}
-          {user?.role === "Artisan" ? "service requests" : "bookings"}
+          View and manage{" "}
+          {user?.role === "Artisan"
+            ? "your service requests"
+            : user?.role === "User"
+            ? " your bookings"
+            : "bookings"}
         </p>
       </div>
 
@@ -95,6 +99,7 @@ const Bookings = () => {
           columns={artisanColumns()}
           data={bookingOrders.orders}
           isLoading={loading}
+          filterBy="service_type"
         />
       )}
 
@@ -107,6 +112,7 @@ const Bookings = () => {
             })}
             data={bookingOrders.orders}
             isLoading={loading}
+            filterBy="service_type"
           />
 
           <CloseOrderModal
@@ -126,12 +132,12 @@ const Bookings = () => {
       )}
 
       {user?.role === "Admin" && (
-        <p>Admin Bookings</p>
-        // <DataTable
-        //   columns={adminColumns()}
-        //   data={bookingOrders.orders}
-        //   isLoading={loading}
-        // />
+        <DataTable
+          columns={artisanColumns()}
+          data={bookingOrders.orders}
+          isLoading={loading}
+          filterBy="service_type"
+        />
       )}
     </div>
   );

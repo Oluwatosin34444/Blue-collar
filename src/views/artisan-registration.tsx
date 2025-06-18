@@ -37,8 +37,8 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
-// import { LocationSelect } from "@/components/location-select";
+import { AutocompleteComponent } from "@/components/address-autocomplete/address-autocomplete";
+// import Autocomplete from "react-google-autocomplete";
 
 const ArtisanRegister = () => {
   const { artisanSignUp, isLoading } = useAuth();
@@ -255,27 +255,6 @@ const ArtisanRegister = () => {
                 )}
               />
 
-              {/* <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <LocationSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Search for a location..."
-                        disabled={field.disabled}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
-
-              {/* <AutocompleteComponent /> */}
-
               <FormField
                 control={form.control}
                 name="location"
@@ -339,6 +318,13 @@ const ArtisanRegister = () => {
                 )}
               />
             </div>
+
+            <AutocompleteComponent />
+
+            {/* <Autocomplete
+              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+              onPlaceSelected={(place) => console.log(place)}
+            /> */}
 
             <FormField
               control={form.control}

@@ -173,6 +173,8 @@ function AddressAutoCompleteInput(props: CommonProps) {
     fetcher
   );
 
+  console.log("autocomplete data", data);
+
   const predictions = data?.data || [];
 
   return (

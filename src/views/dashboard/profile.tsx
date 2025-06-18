@@ -99,7 +99,7 @@ const Profile = () => {
         location: user.location || "",
         address: user.address || "",
         service: user.role === "Artisan" ? user.service : "",
-        userImage: user.role === "User" ? user.userImage : undefined,
+        userImage: user.role === "User" || user.role === "Admin" ? user.userImage : undefined,
         artisanImage: user.role === "Artisan" ? user.artisanImage : undefined,
         active: user.active,
       });
@@ -151,7 +151,7 @@ const Profile = () => {
     }
 
     try {
-      if (user?.role === "User") {
+      if (user?.role === "User" || user?.role === "Admin") {
         const userData = {
           ...data,
           userImage: selectedFile || data.userImage,
@@ -176,7 +176,7 @@ const Profile = () => {
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
     try {
-      if (user?.role === "User") {
+      if (user?.role === "User" || user?.role === "Admin") {
         await updateUserPassword(data);
       } else {
         await updateArtisanPassword(data);

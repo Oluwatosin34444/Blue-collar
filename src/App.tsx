@@ -14,6 +14,9 @@ import {
   Profile,
   KYC,
   AdminRegistration,
+  AdminLogin,
+  DashboardUsers,
+  DashboardArtisans,
 } from "./views/index";
 import { MyAppNav } from "./components/navbar";
 import ArtisanDetails from "./views/artisans/[id]";
@@ -43,6 +46,7 @@ function App() {
           </Route>
           <Route path="/services" element={<Services />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/client-registration" element={<ClientRegistration />} />
           <Route path="/admin-registration" element={<AdminRegistration />} />
@@ -64,6 +68,8 @@ function App() {
             <Route path="bookings" element={<Bookings />} />
             <Route path="profile" element={<Profile />} />
             <Route path="kyc" element={<KYC />} />
+            <Route path="artisans" element={<DashboardArtisans />} />
+            <Route path="users" element={<DashboardUsers />} />
           </Route>
         </Routes>
         {!isDashboardRoute && <Footer />}

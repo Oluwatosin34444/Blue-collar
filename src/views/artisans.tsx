@@ -18,37 +18,10 @@ import { locations, services } from "@/lib/constant";
 import Container from "@/components/container";
 import { authApi } from "@/services/auth-api";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Review } from "@/lib/types";
+import type { Artisan, ArtisanResponse } from "@/lib/types";
 import { Rating, RatingButton } from "@/components/ui/rating";
 import { BadgeCheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-interface Artisan {
-  _id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  location: string;
-  address: string;
-  verified: boolean;
-  artisanImage: string;
-  active: boolean;
-  service: string;
-  booked: boolean;
-  phone: string;
-  rating: number;
-  dateAdded: string;
-  review: Review[];
-}
-
-interface ArtisanResponse {
-  artisanItems: Artisan[];
-  totalArtisanItems: number;
-  currentPage: number;
-  totalPages: number;
-  success: boolean;
-}
 
 const ITEMS_PER_PAGE = 9;
 

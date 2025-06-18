@@ -283,7 +283,11 @@ export function MyAppNav() {
                         {user.firstName} {user.lastName}
                       </span>
                       <span className="text-sm text-gray-500">
-                        ({user.role === "Artisan" ? "Artisan" : "User"})
+                        ({user.role === "Artisan"
+                          ? "Artisan"
+                          : user.role === "Admin"
+                          ? "Admin"
+                          : "User"})
                       </span>
                     </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
