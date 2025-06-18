@@ -26,7 +26,7 @@ export const kycSchema = z.object({
   certifications: z.string().optional(),
   workDescription: z
     .string()
-    .min(20, "Work description must be at least 20 characters"),
+    .min(10, "Work description must be at least 10 characters"),
 
   // Emergency Contact
   emergencyContactName: z.string().min(2, "Emergency contact name is required"),
