@@ -164,8 +164,6 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [adrAddress, setAdrAddress] = useState(null);
 
-  console.log(selectedPlaceId, "see selectedPlaceId");
-
   useEffect(() => {
     if (selectedPlaceId) {
       setIsLoadingDetails(true);
