@@ -176,7 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.artisanLogin(email, password);
-      console.log("artisan login response", response);
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
@@ -246,7 +245,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.userLogin(email, password);
-      console.log("user login response", response);
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
@@ -298,7 +296,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await authApi.userLogin(email, password);
-      console.log("user login response", response);
       const { token, ...userData } = response;
 
       localStorage.setItem("token", token);
@@ -365,7 +362,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.success("Profile data refreshed successfully");
       } else {
         const response = await authApi.getArtisanProfile(user.id);
-        console.log("artisan profile response", response);
         const artisan = response.artisan;
         const updatedUser = {
           ...artisan,
@@ -465,7 +461,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     try {
       const response = await authApi.updateUserPassword(updatePasswordData);
-      console.log("update user password response", response);
       toast.success(response.message || "Password updated successfully");
       return response;
     } catch (error) {
@@ -487,7 +482,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     try {
       const response = await authApi.updateArtisanPassword(updatePasswordData);
-      console.log("update artisan password response", response);
       toast.success(response.message || "Password updated successfully");
       return response;
     } catch (error) {

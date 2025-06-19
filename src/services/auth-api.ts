@@ -92,7 +92,6 @@ export const authApi = {
         },
       }
     );
-    console.log("user signup response", response.data);
     return response.data;
   },
 
