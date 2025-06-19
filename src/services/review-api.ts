@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to add auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -30,7 +29,6 @@ export const reviewApi = {
       `/artisan/ratings/add/${artisanId}`,
       review
     );
-    console.log("review response", response.data);
     return response.data;
   },
 };

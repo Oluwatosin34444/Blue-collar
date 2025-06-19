@@ -33,6 +33,7 @@ interface BookingModalProps {
   userName: string;
   isUserActive: boolean;
   artisanBooked: boolean;
+  userAddress: string;
   onBookingSuccess: () => void;
 }
 
@@ -43,6 +44,7 @@ export function BookingModal({
   userName,
   isUserActive,
   artisanBooked,
+  userAddress,
   onBookingSuccess,
 }: BookingModalProps) {
   const [open, setOpen] = useState(false);
@@ -57,7 +59,7 @@ export function BookingModal({
         return date;
       })(),
       additionalInfo: "",
-      address: "",
+      address: userAddress,
       artisanUsername,
       serviceName,
       userName,
