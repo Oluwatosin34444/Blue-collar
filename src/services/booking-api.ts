@@ -38,6 +38,13 @@ export const bookingApi = {
     return response.data;
   },
 
+  getBookingOrdersArtisan: async (page: number, artisanUsername: string) => {
+    const response = await api.get(
+      `artisan/booking-orders/${artisanUsername}?page=${page}`
+    );
+    return response.data;
+  },
+
   getBookingOrderById: async (id: string) => {
     const response = await api.get(`/booking-orders/${id}`);
     return response.data;

@@ -75,6 +75,7 @@ export const authApi = {
         password,
       }
     );
+    console.log("artisanLogin", response.data);
     return response.data;
   },
 

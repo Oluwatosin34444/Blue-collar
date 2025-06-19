@@ -32,12 +32,12 @@ export const artisanColumns = (): ColumnDef<BookingOrder>[] => [
     },
   },
   {
-    accessorKey: "booked_by",
+    accessorKey: "customer_name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Customer" />
     ),
     cell: ({ row }) => {
-      const customer = row.getValue("booked_by") as string;
+      const customer = row.getValue("customer_name") as string;
       return (
         <div className="flex items-center space-x-2">
           <User className="h-4 w-4 text-gray-400" />
