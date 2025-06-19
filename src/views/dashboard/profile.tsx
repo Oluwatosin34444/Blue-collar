@@ -55,8 +55,6 @@ const Profile = () => {
     updateArtisanPassword,
   } = useAuth();
 
-  console.log(user, "user");
-
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
