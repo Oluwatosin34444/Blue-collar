@@ -12,8 +12,6 @@ const Artisans = () => {
   const [loading, setLoading] = useState(true);
   const [artisans, setArtisans] = useState<Artisan[]>([]);
 
-  console.log(artisans, "see artisans");
-
   useEffect(() => {
     if (user?.role !== "Admin") {
       navigate("/dashboard");

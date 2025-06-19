@@ -145,3 +145,25 @@ export interface ArtisanResponse {
   totalPages: number;
   success: boolean;
 }
+
+export interface Users {
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  location: string;
+  address: string;
+  verified: boolean;
+  dateAdded: string;
+  userImage: string;
+  active: boolean;
+  role: string;
+  phone: string;
+}
+
+export interface UsersResponse {
+  message: string;
+  data: Users[];
+  success: boolean;
+}

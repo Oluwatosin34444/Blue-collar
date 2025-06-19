@@ -61,7 +61,6 @@ export const authApi = {
         },
       }
     );
-    console.log("artisan signup response", response.data);
     return response.data;
   },
 
@@ -76,7 +75,6 @@ export const authApi = {
         password,
       }
     );
-    console.log("artisan login response", response.data);
     return response.data;
   },
 
@@ -116,6 +114,11 @@ export const authApi = {
 
   userLogout: async () => {
     const response = await api.get("/auth/logout");
+    return response.data;
+  },
+
+  getAllUsers: async () => {
+    const response = await api.get(`/users/get-all`);
     return response.data;
   },
 

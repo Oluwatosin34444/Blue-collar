@@ -9,6 +9,7 @@ import { BookingModal } from "@/components/bookings/booking-modal";
 import { useAuth } from "@/contexts/use-auth";
 import { Marquee } from "@/components/magicui/marquee";
 import { ReviewCard } from "@/components/review-card";
+import { destructureAddress } from "@/lib/utils";
 
 const ArtisanDetails = () => {
   const { id } = useParams();
@@ -16,6 +17,8 @@ const ArtisanDetails = () => {
   const navigate = useNavigate();
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { formattedAddress } = destructureAddress(user?.address || "");
 
   useEffect(() => {
     const fetchArtisan = async () => {
@@ -125,6 +128,7 @@ const ArtisanDetails = () => {
               userName={user?.username || ""}
               isUserActive={user?.active || false}
               artisanBooked={artisan.booked}
+              userAddress={formattedAddress}
               onBookingSuccess={() => {
                 setArtisan((prevArtisan) =>
                   prevArtisan

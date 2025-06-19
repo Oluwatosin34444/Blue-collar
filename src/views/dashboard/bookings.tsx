@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/datatable/data-table";
 import { userColumns } from "@/components/bookings/user-columns";
 import { artisanColumns } from "@/components/bookings/artisan-columns";
+import { adminColumns } from "@/components/bookings/admin-columns";
 import { CloseOrderModal } from "@/components/bookings/close-order-modal";
 import { ReviewModal } from "@/components/bookings/review-modal";
 import { bookingApi } from "@/services/booking-api";
@@ -133,7 +134,7 @@ const Bookings = () => {
 
       {user?.role === "Admin" && (
         <DataTable
-          columns={artisanColumns()}
+          columns={adminColumns()}
           data={bookingOrders.orders}
           isLoading={loading}
           filterBy="service_type"
