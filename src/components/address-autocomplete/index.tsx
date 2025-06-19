@@ -37,6 +37,8 @@ interface AddressAutoCompleteProps {
   placeholder?: string;
 }
 
+const GOOGLE_BASE_URL = import.meta.env.VITE_API_GOOGLE_BASE_URL;
+
 async function fetchAutocompleteSuggestions(input: string) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -48,7 +50,7 @@ async function fetchAutocompleteSuggestions(input: string) {
     return { data: [], error: null };
   }
 
-  const url = "/gplaces/v1/places:autocomplete";
+  const url = `${GOOGLE_BASE_URL}/v1/places:autocomplete`;
 
   const primaryTypes = [
     "street_address",
@@ -94,7 +96,7 @@ async function fetchPlaceDetails(placeId: string) {
     throw new Error("Missing Google Maps API Key");
   }
 
-  const url = `/gplaces/v1/${placeId}`;
+  const url = `${GOOGLE_BASE_URL}/v1/${placeId}`;
 
   try {
     const response = await fetch(url, {
