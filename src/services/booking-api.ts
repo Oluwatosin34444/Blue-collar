@@ -40,9 +40,8 @@ export const bookingApi = {
 
   getBookingOrdersArtisan: async (page: number, artisanUsername: string) => {
     const response = await api.get(
-      `/booking-orders/artisan/${artisanUsername}?page=${page}`
+      `artisan/booking-orders/${artisanUsername}?page=${page}`
     );
-    console.log(response.data, "response.data artisan");
     return response.data;
   },
 

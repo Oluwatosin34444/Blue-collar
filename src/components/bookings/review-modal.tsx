@@ -63,7 +63,6 @@ export function ReviewModal({
         order.artisanId,
         data
       );
-      console.log("Review response:", response);
       toast.success(response.message);
       onReviewSubmitted();
       form.reset();

@@ -37,10 +37,10 @@ export const userColumns = ({ onCloseOrder, onSubmitReview }: ColumnsProps): Col
     },
   },
   {
-    accessorKey: "artisanUsername",
+    accessorKey: "artisanFullName",
     header: ({ column }) => <DataTableColumnHeader column={column} title='Artisan' />,
     cell: ({ row }) => {
-      const artisan = row.getValue("artisanUsername") as string
+      const artisan = row.getValue("artisanFullName") as string
       return (
         <div className="flex items-center space-x-2">
           <User className="h-4 w-4 text-gray-400" />
