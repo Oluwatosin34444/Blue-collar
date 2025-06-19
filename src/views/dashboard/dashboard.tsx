@@ -22,42 +22,83 @@ interface BookingOrderResponse {
 export default function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [bookingOrders, setBookingOrders] = useState<BookingOrderResponse>({
-    orders: [],
-    totalOrders: 0,
-    currentPage: 1,
-    totalPages: 1,
-    success: false,
-  });
+  const [bookingOrders, setBookingOrders] = useState<BookingOrder[]>([]);
   const [users, setUsers] = useState<Users[]>([]);
   const [artisans, setArtisans] = useState<Artisan[]>([]);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        const data = (await bookingApi.getBookingOrders(
-          1
-        )) as BookingOrderResponse;
-        setBookingOrders(data);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-        setBookingOrders({
-          orders: [],
-          totalOrders: 0,
-          currentPage: 1,
-          totalPages: 1,
-          success: false,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBookings();
-  }, []);
+   useEffect(() => {
+     if (user?.role === "User" || user?.role === "Admin") {
+       const fetchBookings = async () => {
+         setLoading(true);
+         try {
+           let allBookings: BookingOrder[] = [];
+           let totalPages = 1;
+ 
+           const firstPageData = (await bookingApi.getBookingOrders(
+             1
+           )) as BookingOrderResponse;
+           totalPages = firstPageData.totalPages;
+           allBookings = [...firstPageData.orders];
+ 
+           const pagePromises = [];
+           for (let page = 2; page <= totalPages; page++) {
+             pagePromises.push(bookingApi.getBookingOrders(page));
+           }
+ 
+           const responses = await Promise.all(pagePromises);
+           responses.forEach((response: BookingOrderResponse) => {
+             allBookings = [...allBookings, ...response.orders];
+           });
+ 
+           setBookingOrders(allBookings);
+         } catch (error) {
+           console.error("Error fetching bookings:", error);
+           setBookingOrders([]);
+         } finally {
+           setLoading(false);
+         }
+       };
+       fetchBookings();
+     } else {
+       const fetchBookings = async () => {
+         setLoading(true);
+         try {
+           let allBookings: BookingOrder[] = [];
+           let totalPages = 1;
+ 
+           const firstPageData = (await bookingApi.getBookingOrdersArtisan(
+             1,
+             user?.username || ""
+           )) as BookingOrderResponse;
+           totalPages = firstPageData.totalPages;
+           allBookings = [...firstPageData.orders];
+ 
+           const pagePromises = [];
+           for (let page = 2; page <= totalPages; page++) {
+             pagePromises.push(
+               bookingApi.getBookingOrdersArtisan(page, user?.username || "")
+             );
+           }
+ 
+           const responses = await Promise.all(pagePromises);
+           responses.forEach((response: BookingOrderResponse) => {
+             allBookings = [...allBookings, ...response.orders];
+           });
+ 
+           setBookingOrders(allBookings);
+         } catch (error) {
+           console.error("Error fetching bookings:", error);
+           setBookingOrders([]);
+         } finally {
+           setLoading(false);
+         }
+       };
+       fetchBookings();
+     }
+   }, [user?.role, user?.username]);
 
   useEffect(() => {
-    const fetchArtisans = async () => {
+    const fetchUsers = async () => {
       setLoading(true);
       try {
         const users = (await authApi.getAllUsers()) as UsersResponse;
@@ -70,7 +111,7 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    fetchArtisans();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -115,27 +156,27 @@ export default function Dashboard() {
   const userStats = [
     {
       title: "In Progress Orders",
-      value: bookingOrders.orders.filter((order) => order.state === 0).length,
+      value: bookingOrders.filter((order) => order.state === 0).length,
       trend:
-        bookingOrders.orders.filter((order) => order.state === 0).length > 0
+        bookingOrders.filter((order) => order.state === 0).length > 0
           ? ("up" as const)
           : ("down" as const),
       description: "Artisan currently engaged",
     },
     {
       title: "Closed Orders",
-      value: bookingOrders.orders.filter((order) => order.state === 1).length,
+      value: bookingOrders.filter((order) => order.state === 1).length,
       trend:
-        bookingOrders.orders.filter((order) => order.state === 1).length > 0
+        bookingOrders.filter((order) => order.state === 1).length > 0
           ? ("up" as const)
           : ("down" as const),
       description: "Total orders fulfilled and closed",
     },
     {
       title: "Total Orders",
-      value: bookingOrders.totalOrders,
+      value: bookingOrders.length,
       trend:
-        bookingOrders.totalOrders > 0 ? ("up" as const) : ("down" as const),
+        bookingOrders.length > 0 ? ("up" as const) : ("down" as const),
       description: "Total orders booked on the platform",
     },
   ];
@@ -143,27 +184,27 @@ export default function Dashboard() {
   const artisanStats = [
     {
       title: "In Progress Orders",
-      value: bookingOrders.orders.filter((order) => order.state === 0).length,
+      value: bookingOrders.filter((order) => order.state === 0).length,
       trend:
-        bookingOrders.orders.filter((order) => order.state === 0).length > 0
+        bookingOrders.filter((order) => order.state === 0).length > 0
           ? ("up" as const)
           : ("down" as const),
       description: "Artisan currently engaged",
     },
     {
       title: "Closed Orders",
-      value: bookingOrders.orders.filter((order) => order.state === 1).length,
+      value: bookingOrders.filter((order) => order.state === 1).length,
       trend:
-        bookingOrders.orders.filter((order) => order.state === 1).length > 0
+        bookingOrders.filter((order) => order.state === 1).length > 0
           ? ("up" as const)
           : ("down" as const),
       description: "Total orders fulfilled and closed",
     },
     {
       title: "Total Orders",
-      value: bookingOrders.totalOrders,
+      value: bookingOrders.length,
       trend:
-        bookingOrders.totalOrders > 0 ? ("up" as const) : ("down" as const),
+        bookingOrders.length > 0 ? ("up" as const) : ("down" as const),
       description: "Total orders booked on the platform",
     },
   ];
@@ -183,9 +224,9 @@ export default function Dashboard() {
     },
     {
       title: "Total Bookings",
-      value: bookingOrders.totalOrders,
+      value: bookingOrders.length,
       trend:
-        bookingOrders.totalOrders > 0 ? ("up" as const) : ("down" as const),
+        bookingOrders.length > 0 ? ("up" as const) : ("down" as const),
       description: "Total bookings on the platform",
     },
   ];

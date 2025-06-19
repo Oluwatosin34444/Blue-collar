@@ -19,41 +19,82 @@ interface BookingOrderResponse {
 
 const Bookings = () => {
   const { user } = useAuth();
-  const [bookingOrders, setBookingOrders] = useState<BookingOrderResponse>({
-    orders: [],
-    totalOrders: 0,
-    currentPage: 1,
-    totalPages: 1,
-    success: false,
-  });
+  const [bookingOrders, setBookingOrders] = useState<BookingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<BookingOrder | null>(null);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        const data = (await bookingApi.getBookingOrders(
-          1
-        )) as BookingOrderResponse;
-        setBookingOrders(data);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-        setBookingOrders({
-          orders: [],
-          totalOrders: 0,
-          currentPage: 1,
-          totalPages: 1,
-          success: false,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBookings();
-  }, []);
+    if (user?.role === "User" || user?.role === "Admin") {
+      const fetchBookings = async () => {
+        setLoading(true);
+        try {
+          let allBookings: BookingOrder[] = [];
+          let totalPages = 1;
+
+          const firstPageData = (await bookingApi.getBookingOrders(
+            1
+          )) as BookingOrderResponse;
+          totalPages = firstPageData.totalPages;
+          allBookings = [...firstPageData.orders];
+
+          const pagePromises = [];
+          for (let page = 2; page <= totalPages; page++) {
+            pagePromises.push(bookingApi.getBookingOrders(page));
+          }
+
+          const responses = await Promise.all(pagePromises);
+          responses.forEach((response: BookingOrderResponse) => {
+            allBookings = [...allBookings, ...response.orders];
+          });
+
+          setBookingOrders(allBookings);
+        } catch (error) {
+          console.error("Error fetching bookings:", error);
+          setBookingOrders([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBookings();
+    } else {
+      const fetchBookings = async () => {
+        setLoading(true);
+        try {
+          let allBookings: BookingOrder[] = [];
+          let totalPages = 1;
+
+          const firstPageData = (await bookingApi.getBookingOrdersArtisan(
+            1,
+            user?.username || ""
+          )) as BookingOrderResponse;
+          totalPages = firstPageData.totalPages;
+          allBookings = [...firstPageData.orders];
+
+          const pagePromises = [];
+          for (let page = 2; page <= totalPages; page++) {
+            pagePromises.push(
+              bookingApi.getBookingOrdersArtisan(page, user?.username || "")
+            );
+          }
+
+          const responses = await Promise.all(pagePromises);
+          responses.forEach((response: BookingOrderResponse) => {
+            allBookings = [...allBookings, ...response.orders];
+          });
+
+          setBookingOrders(allBookings);
+        } catch (error) {
+          console.error("Error fetching bookings:", error);
+          setBookingOrders([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBookings();
+    }
+  }, [user?.role, user?.username]);
 
   const handleCloseOrder = (order: BookingOrder) => {
     setSelectedOrder(order);
@@ -66,12 +107,11 @@ const Bookings = () => {
   };
 
   const handleOrderClosed = (orderId: string) => {
-    setBookingOrders((prev) => ({
-      ...prev,
-      orders: prev.orders.map((order) =>
+    setBookingOrders((prev) =>
+      prev.map((order) =>
         order._id === orderId ? { ...order, state: 1 } : order
-      ),
-    }));
+      )
+    );
     setCloseModalOpen(false);
     setSelectedOrder(null);
   };
@@ -98,7 +138,7 @@ const Bookings = () => {
       {user?.role === "Artisan" && (
         <DataTable
           columns={artisanColumns()}
-          data={bookingOrders.orders}
+          data={bookingOrders}
           isLoading={loading}
           filterBy="service_type"
         />
@@ -111,7 +151,7 @@ const Bookings = () => {
               onCloseOrder: handleCloseOrder,
               onSubmitReview: handleSubmitReview,
             })}
-            data={bookingOrders.orders}
+            data={bookingOrders}
             isLoading={loading}
             filterBy="service_type"
           />
@@ -135,7 +175,7 @@ const Bookings = () => {
       {user?.role === "Admin" && (
         <DataTable
           columns={adminColumns()}
-          data={bookingOrders.orders}
+          data={bookingOrders}
           isLoading={loading}
           filterBy="service_type"
         />
